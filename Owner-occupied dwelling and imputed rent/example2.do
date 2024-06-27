@@ -96,3 +96,33 @@ predict fitted_y, xb
 gen price_predicted = exp(fitted_y)
 twoway (scatter price price_predicted) (line price price), title("Actual vs. Imputed House Price") legend(off) ///
 	xtitle(Predicted) ytitle(Actual)
+	
+	
+******************************************************************************************
+* Quantile regression as an alternative to OLS for Hedonic pricing
+qreg lprice rooms larea lland baths age agesq y81 ldist, q(0.9)
+
+* Predict fitted values
+capture drop squared_residuals fitted_y res
+predict fitted_y, xb
+predict res, residuals
+
+
+* Visualize Predicted vs Actual
+sort age
+twoway (scatter lprice fitted_y) (line lprice lprice), /// 
+	title("Predicted Vs. Actual") legend(off) ///
+	xtitle(Predicted log(price)) ytitle(Actual log(price))
+	
+// Calculate the squared residuals
+gen squared_residuals = res^2
+
+// Calculate the mean of the squared residuals
+summarize squared_residuals, meanonly
+scalar mse = r(mean)
+
+// Calculate RMSE
+scalar rmse = sqrt(mse)
+
+// Display RMSE
+display "RMSE: " rmse
