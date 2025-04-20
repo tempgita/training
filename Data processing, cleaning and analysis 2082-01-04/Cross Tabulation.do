@@ -18,6 +18,7 @@ table education ethnicity
 table sex urban //two-way
 table (sex urban) (education) //three-way
 table (sex urban) (education) (province) //n-way
+table (province sex urban) (education)
 
 
 ** Table of statistics

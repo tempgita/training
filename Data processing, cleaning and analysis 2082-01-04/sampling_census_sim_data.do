@@ -166,7 +166,6 @@ frget smpld, from(temp)
 keep if smpld == 1
 drop temp smpld
 
-
 bysort municipality_id: sample 200, count
 
 gen sample_size = _N
