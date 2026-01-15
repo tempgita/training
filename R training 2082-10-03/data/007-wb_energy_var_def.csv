@@ -1,0 +1,9 @@
+variables,description
+ele_rural,Access to electricity (% of rural population with access)
+ele_total,Access to electricity (% of total population)
+ele_urban,Access to electricity (% of urban population with access)
+en_int,Energy intensity level of primary energy (MJ/2011 USD PPP)
+ren_ele,Renewable electricity output (GWh)
+ren_con,Renewable energy consumption (TJ)
+tot_ele,Total electricity output (GWh)
+tfec,Total final energy consumption (TFEC) (TJ)
