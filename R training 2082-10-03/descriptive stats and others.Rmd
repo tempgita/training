@@ -1,0 +1,252 @@
+---
+output: html_document
+---
+
+# Descriptive Statistics
+
+## Summary function
+
+```{r}
+library(dplyr)
+data("mtcars")
+summary(select(mtcars, mpg, cyl, disp))
+```
+
+## Hmisc pacakge
+
+```{r}
+#install.packages('Hmisc')
+Hmisc::describe(select(mtcars, mpg, cyl, disp))
+```
+
+## pastecs package
+
+```{r}
+# install.packages('pastecs')
+pastecs::stat.desc(select(mtcars, mpg, cyl, disp))
+```
+
+## psych package
+
+```{r}
+#install.packages('psych')
+psych::describe(select(mtcars, mpg, cyl, disp))
+```
+
+## Descriptive statistics by group
+
+### Grouping by 1 var
+
+```{r}
+by(mtcars$mpg,
+   list(Has_gear = mtcars$am),
+   summary)
+```
+
+### Grouping by 2 var
+
+```{r}
+by(select(mtcars, mpg, cyl), #data
+   list(Has_gear = mtcars$am, #grouping
+        Engine = mtcars$vs),
+   summary) #function
+```
+
+# Hypothesis testing
+
+## One sample test
+
+```{r}
+
+library(dplyr) 
+ 
+# Set seed for reproducibility 
+set.seed(12345) 
+ 
+# Create a dummy dataset 
+n <- 1000 
+group <- rep(0:1, length.out = n) 
+score <- 50 + group * 10 + rnorm(n, mean = 0, sd = 10)
+
+# Combine into a data frame 
+data <- data.frame(group = group, score = score)
+
+t.test(data$score, mu = 60) #H0: pop_mean = 50
+
+```
+
+## Two sample test
+
+```{r}
+data0 <- filter(data, group == 0) 
+data1 <- filter(data, group == 1) 
+t.test(data0$score, data1$score) #H0: pop_mean_grp1 = pop_mean_grp2
+#OR
+t.test(score ~ group, data = data)
+```
+
+## NMICS example
+
+```{r}
+library(haven)
+
+get_url <- function(x) {
+  return(paste0("https://github.com/tempgita/training/raw/refs/heads/master/R%20training%202082-10-03/data/",x))
+}
+
+df <- read_spss(get_url('009-hl.sav'))
+
+# HL6 -> Age, HL4 -> Sex 
+# Summarize age for males (HL4 == 1) and females (HL4 == 2) 
+df_male <- filter(df, HL4 == 1) 
+df_female <- filter(df, HL4 == 2) 
+mean(df_male$HL6) 
+mean(df_female$HL6) 
+#average age : male = 28.26, female = 28.83 
+
+t.test(HL6 ~ HL4, data = df) 
+
+summary(lm(HL6 ~ HL4, data = df))
+```
+
+# Using Survey Weights
+
+```{r}
+library(survey) #for survey data 
+library(haven) #for importing Stata dta file 
+library(srvyr) # srvyr' for tidyverse-style coding (easier to read) 
+ 
+#function for directly accessing the data from the web 
+get_url <- function(x) { 
+  return(paste0("https://github.com/tempgita/training/raw/refs/heads/master/R%20training%202082-10-03/data/",x)) 
+} 
+ 
+df <- read_stata(get_url('013-poverty.dta')) 
+
+svy_design <- svydesign(ids = ~psu_number,
+          strata = ~domain,
+          weights = ~hhs_wt,
+          data = df)
+
+svy_obj <- as_survey(svy_design)
+
+```
+
+## Population size calculation
+
+```{r}
+
+#manual way
+df %>% 
+  # group_by(prov) %>% 
+  summarise(hh_pop = sum(hhs_wt),
+            ind_pop = sum(ind_wt))
+
+
+svy_obj %>% 
+  group_by(prov) %>% 
+  summarise(pop_hh = survey_total())
+```
+
+## Mean (using survey weight)
+
+```{r}
+# The manual way
+df %>% 
+  summarise(pcep_mean = weighted.mean(pcep, hhs_wt))
+
+#formal way
+svy_obj %>% 
+  group_by(prov) %>% 
+  summarise(pcep_mean = survey_mean(pcep))
+```
+
+## Poor proportion
+
+```{r}
+
+svy_obj %>% 
+  group_by(prov) %>%
+  summarise(poverty_rate = survey_mean(poor,  
+                                       vartype = c("se", "ci"), level = 0.95)) # for CI at 5% level of
+```
+
+## Poor proportion (individual)
+
+```{r}
+ind_svy_design <- svydesign(ids = ~psu_number,
+          strata = ~domain,
+          weights = ~ind_wt,
+          data = df)
+
+ind_svy_obj <- as_survey(ind_svy_design)
+
+ind_svy_obj %>% 
+  # group_by(prov) %>%
+  summarise(poverty_rate = survey_mean(poor))
+```
+
+## Quantiles
+
+```{r}
+# --- Using the Survey Object --- 
+# Calculate Median PCEP by Province 
+svy_obj %>% 
+  group_by(prov) %>%  
+  summarise( 
+    median_pcep = survey_median(pcep), 
+    q90 = survey_quantile(pcep, quantiles = 0.9) 
+  ) 
+```
+
+## Ratio calculation
+
+```{r}
+svy_obj %>% 
+  group_by(prov) %>%  
+  summarise( 
+    food_share = survey_ratio(numerator = pcep_food, 
+                              denominator = pcep) 
+  )
+```
+
+## Survey t-test 
+
+```{r}
+
+svyttest(pcep ~ poor, design = svy_obj)
+```
+
+## Task: perform t-test between the mean pcep between Madhesh vs Karnali and Madhesh vs. Bagamati. 
+
+```{r}
+sub_obj <- svy_obj %>%  
+  filter(prov %in% c(6, 7)) %>% 
+  mutate(prov_binary =as.factor(prov)) #to make prov binary variable
+
+svyttest(pcep ~ prov_binary, design = sub_obj)
+```
+
+# Webscrapping
+
+```{r}
+dx <- read.csv("https://data.ny.gov/api/views/d6yy-54nr/rows.csv") 
+head(dx)
+```
+
+```{r}
+# install.packages('rvest')
+
+library(rvest)
+library(dplyr) 
+ 
+#loading webpage content 
+webpage <- read_html("https://www.sharesansar.com/today-share-price")
+
+tables <- html_table(webpage)
+length(tables)
+
+df <- tables[[1]]
+
+df %>% View()
+```
