@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weighted Population Estimates from poverty.dta</title>
+  <style>
+    :root {
+      --ink: #1d2935;
+      --muted: #526475;
+      --accent: #174f68;
+      --accent-soft: #eaf2f5;
+      --line: #cfd9de;
+      --paper: #ffffff;
+      --canvas: #eef2f4;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 11.25pt;
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(8.25in, calc(100% - 2rem));
+      margin: 2rem auto;
+      padding: 0.7in 0.75in;
+      background: var(--paper);
+      box-shadow: 0 5px 24px rgba(25, 45, 56, 0.12);
+    }
+
+    header {
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    h1,
+    h2 {
+      color: var(--accent);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.2;
+    }
+
+    h1 {
+      margin: 0 0 0.4rem;
+      font-size: 24pt;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      margin: 1.65rem 0 0.6rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid var(--line);
+      font-size: 15pt;
+    }
+
+    p {
+      margin: 0.55rem 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.8rem;
+      margin: 1.2rem 0 1.5rem;
+    }
+
+    .metric {
+      padding: 0.85rem 1rem;
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+    }
+
+    .metric strong,
+    .metric span {
+      display: block;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .metric strong {
+      color: var(--accent);
+      font-size: 18pt;
+      line-height: 1.25;
+    }
+
+    .metric span {
+      margin-top: 0.15rem;
+      color: var(--muted);
+      font-size: 9.5pt;
+    }
+
+    table {
+      width: 100%;
+      margin: 0.8rem 0 1rem;
+      border-collapse: collapse;
+      font-size: 10.25pt;
+    }
+
+    th,
+    td {
+      padding: 0.5rem 0.6rem;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #ffffff;
+      background: var(--accent);
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 600;
+    }
+
+    code {
+      color: #123e51;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92em;
+    }
+
+    .formula {
+      margin: 0.8rem 0;
+      padding: 0.7rem 0.9rem;
+      background: #f6f8f9;
+      border: 1px solid var(--line);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 10pt;
+    }
+
+    .note {
+      margin-top: 1rem;
+      padding: 0.7rem 0.9rem;
+      color: #334a57;
+      background: #f7f9fa;
+      border-left: 3px solid #7895a3;
+      font-size: 10pt;
+    }
+
+    footer {
+      margin-top: 1.6rem;
+      padding-top: 0.6rem;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 8.75pt;
+    }
+
+    @media (max-width: 650px) {
+      main {
+        width: 100%;
+        margin: 0;
+        padding: 1.25rem;
+        box-shadow: none;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      @page {
+        size: letter;
+        margin: 0.55in 0.65in;
+      }
+
+      body {
+        background: #ffffff;
+        font-size: 10.5pt;
+      }
+
+      main {
+        width: auto;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+      }
+
+      h1 {
+        font-size: 21pt;
+      }
+
+      h2 {
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      table,
+      .summary,
+      .formula,
+      .note {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+      <header>
+        <h1>Weighted Population Estimates</h1>
+        <p class="subtitle">Analysis of <code>poverty.dta</code> using census-adjusted expansion weights</p>
+      </header>
+
+      <section class="summary" aria-label="Headline estimates">
+        <div class="metric">
+          <strong>7,185,103</strong>
+          <span>Estimated household population</span>
+        </div>
+        <div class="metric">
+          <strong>28,740,504</strong>
+          <span>Estimated individual population</span>
+        </div>
+      </section>
+
+      <p>
+        This report presents weighted population totals derived from 9,600 household-level
+        records. The estimates expand the observed records to the represented population using
+        the supplied 2021 census-adjusted household weight. They are population estimates, not
+        counts of records in the sample.
+      </p>
+
+      <section id="variables-used">
+        <h2>Variables Used</h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Variable</th>
+              <th scope="col">Analytical role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>psu_number</code></td>
+              <td>Primary sampling unit identifier; paired with <code>hh_number</code> to identify each household uniquely.</td>
+            </tr>
+            <tr>
+              <td><code>hh_number</code></td>
+              <td>Household identifier within the primary sampling unit.</td>
+            </tr>
+            <tr>
+              <td><code>hhs_wt</code></td>
+              <td>Household expansion weight adjusted to the 2021 census; used to estimate the number of represented households.</td>
+            </tr>
+            <tr>
+              <td><code>hhsize</code></td>
+              <td>Number of people in the household; used with the household weight to calculate the household's contribution to the individual total.</td>
+            </tr>
+            <tr>
+              <td><code>ind_wt</code></td>
+              <td>Person expansion contribution. It was validated against <code>hhs_wt * hhsize</code> within numerical tolerance.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          The combination of <code>psu_number</code> and <code>hh_number</code> was confirmed to be
+          unique across the 9,600 observations. All variables required for the calculations were
+          nonmissing and positive, so no household records were excluded from either total because
+          of missing or nonpositive analytical values.
+        </p>
+      </section>
+
+      <section id="weight-calculation">
+        <h2>Weight Calculation</h2>
+        <p>
+          Each household contributes its expansion weight, <code>hhs_wt</code>, to the household
+          population estimate. Conceptually, a household with a weight of 500 represents 500
+          households in the expanded population. Summing this contribution once for every unique
+          household produces the household total.
+        </p>
+        <div class="formula" aria-label="Household population formula">
+          Estimated households = sum(hhs_wt) = 7,185,102.657485962
+        </div>
+        <p>
+          For individuals, the household expansion weight is multiplied by household size. Thus,
+          a household's person-level contribution is <code>hhs_wt * hhsize</code>. The supplied
+          <code>ind_wt</code> variable was checked and found equal to that product within tolerance,
+          supporting its direct summation as the expanded individual population.
+        </p>
+        <div class="formula" aria-label="Individual population formula">
+          Estimated individuals = sum(ind_wt) = sum(hhs_wt * hhsize)<br>
+          = 28,740,503.526668549
+        </div>
+      </section>
+
+      <section id="methodology">
+        <h2>Methodology</h2>
+        <p>
+          The analysis treated <code>poverty.dta</code> as a household-level file. Before estimation,
+          record structure was checked by testing uniqueness of the composite household key
+          <code>psu_number + hh_number</code>. Required identifiers, weights, and household-size
+          values were then checked for completeness and positivity. This validation establishes
+          that each record enters the totals once and that the expansion calculations are based on
+          usable values throughout the dataset.
+        </p>
+        <p>
+          Weighted totals were obtained by direct summation across the 9,600 validated household
+          records. No additional aggregation, imputation, or adjustment was introduced. The
+          household estimate is the sum of <code>hhs_wt</code>; the individual estimate is the sum
+          of <code>ind_wt</code>, with the identity between <code>ind_wt</code> and
+          <code>hhs_wt * hhsize</code> serving as a consistency check. Reported headline figures are
+          rounded to the nearest whole household or person, while the full-precision sums are shown
+          above for reproducibility.
+        </p>
+        <aside class="note">
+          <strong>Scope of inference:</strong> These calculations provide expanded totals only.
+          PSU- and strata-based variance estimation was not performed, so this report does not
+          present standard errors, confidence intervals, significance tests, or claims about
+          design-based precision.
+        </aside>
+      </section>
+
+      <section id="interpretation">
+        <h2>Interpretation</h2>
+        <p>
+          After application of the 2021 census-adjusted expansion weight, the 9,600 observed
+          household records represent an estimated <strong>7,185,103 households</strong> and
+          <strong>28,740,504 individuals</strong>, rounded to whole population units. The decimal
+          values in the unrounded results arise because survey expansion weights are typically not
+          integers; rounding is applied only for readable presentation of the final totals.
+        </p>
+        <p>
+          Dividing the individual estimate by the household estimate yields an implied weighted
+          average household size of approximately <strong>4.000 persons per household</strong>.
+          This relationship is internally consistent with the validated construction of the person
+          contribution from household weight and household size. The estimates should be read as
+          the total populations represented by the weighted data, not as 9,600 sampled households
+          or as a statement about the uncertainty surrounding the totals.
+        </p>
+      </section>
+
+      <footer>
+        Source: calculations from <code>poverty.dta</code>. Household weights are described in the
+        data as adjusted to the 2021 census. Totals are rounded to the nearest whole unit for display.
+      </footer>
+    </article>
+  </main>
+</body>
+</html>

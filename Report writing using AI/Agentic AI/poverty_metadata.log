@@ -1,0 +1,341 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\anil.shrestha\Downloads\test1\poverty_metadata.log
+  log type:  text
+ opened on:  21 Jun 2026, 21:56:02
+
+. use "poverty.dta", clear
+(NLSS04_DICT)
+
+. describe, fullnames
+
+Contains data from poverty.dta
+ Observations:         9,600                  NLSS04_DICT
+    Variables:            17                  7 Jul 2024 21:34
+-------------------------------------------------------------------------------
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+-------------------------------------------------------------------------------
+psu_number      int     %4.0f                 PSU NUMBER
+hh_number       byte    %2.0f                 HH NUMBER
+prov            byte    %12.0g     prov_lab   Province
+domain          byte    %35.0g     domainlab
+                                              Analytical Domain
+hhsize          byte    %9.0g                 Household size
+hhs_wt          float   %9.0g                 base household weight (adjusted
+                                                for census 2021 final count of
+                                                Households)
+ind_wt          float   %9.0g                 base individual weight (base
+                                                adjusted hh weight x household
+                                                size)
+ad_4            byte    %11.0g     ad_4lab    Urban/rural/ktm_urban
+paasche         double  %10.0g                Paasche index -- food items
+pcep_food       double  %10.0g                Paasche-deflated per capita food
+                                                expenditures (NRP/year)
+pcep_nonfood    float   %9.0g                 Spatially-deflated per capita
+                                                nonfood expenditures (NPR/year)
+pcep            float   %9.0g                 Spatially-deflated per capita
+                                                expenditures (NRP/year)
+pline           float   %9.0g                 National Real Poverty Line
+                                                (NPR/person/year)
+fpline          float   %9.0g                 National Real Food Poverty Line
+                                                (NPR/person/year)
+nfpline         float   %9.0g                 National Real Non-food Poverty
+                                                Line (NPR/person/year)
+poor            byte    %9.0g                 Poverty status
+quintile_pcep   byte    %11.0g     quintile   Expenditure quintile
+-------------------------------------------------------------------------------
+Sorted by: 
+
+. codebook, compact
+
+Variable       Obs Unique      Mean       Min       Max  Label
+-------------------------------------------------------------------------------
+psu_number    9600    800    4400.5      4001      4800  PSU NUMBER
+hh_number     9600     12       6.5         1        12  HH NUMBER
+prov          9600      7      3.77         1         7  Province
+domain        9600     15  39.04375        11        72  Analytical Domain
+hhsize        9600     18  3.968854         1        21  Household size
+hhs_wt        9600    800  748.4482  60.43029  13625.16  base household weig...
+ind_wt        9600   5188  2993.802  60.43029  122626.4  base individual wei...
+ad_4          9600      3   2.34375         1         3  Urban/rural/ktm_urban
+paasche       9600   9574  1.003248  .2698722  2.993077  Paasche index -- fo...
+pcep_food     9600   9600  64332.22  8481.425  486881.7  Paasche-deflated pe...
+pcep_nonfood  9600   9600  73596.93  2795.657   3031339  Spatially-deflated ...
+pcep          9600   9599  137929.2  13826.71   3100367  Spatially-deflated ...
+pline         9600      1  72908.05  72908.05  72908.05  National Real Pover...
+fpline        9600      1  35028.96  35028.96  35028.96  National Real Food ...
+nfpline       9600      1  37879.09  37879.09  37879.09  National Real Non-f...
+poor          9600      2  .1815625         0         1  Poverty status
+quintile_p~p  9600      5  3.128229         1         5  Expenditure quintile
+-------------------------------------------------------------------------------
+
+. summarize, detail
+
+                         PSU NUMBER
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%       4008.5           4001
+ 5%       4040.5           4001
+10%       4080.5           4001       Obs               9,600
+25%       4200.5           4001       Sum of wgt.       9,600
+
+50%       4400.5                      Mean             4400.5
+                        Largest       Std. dev.       230.952
+75%       4600.5           4800
+90%       4720.5           4800       Variance       53338.81
+95%       4760.5           4800       Skewness              0
+99%       4792.5           4800       Kurtosis       1.799996
+
+                          HH NUMBER
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            2              1       Obs               9,600
+25%          3.5              1       Sum of wgt.       9,600
+
+50%          6.5                      Mean                6.5
+                        Largest       Std. dev.      3.452232
+75%          9.5             12
+90%           11             12       Variance       11.91791
+95%           12             12       Skewness              0
+99%           12             12       Kurtosis       1.783217
+
+                          Province
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            1              1       Obs               9,600
+25%            2              1       Sum of wgt.       9,600
+
+50%            3                      Mean               3.77
+                        Largest       Std. dev.      1.924184
+75%            5              7
+90%            7              7       Variance       3.702486
+95%            7              7       Skewness        .197471
+99%            7              7       Kurtosis       1.900052
+
+                      Analytical Domain
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           11             11
+ 5%           11             11
+10%           12             11       Obs               9,600
+25%           22             11       Sum of wgt.       9,600
+
+50%           32                      Mean           39.04375
+                        Largest       Std. dev.       19.3039
+75%           52             72
+90%           71             72       Variance       372.6407
+95%           72             72       Skewness       .2101554
+99%           72             72       Kurtosis       1.887401
+
+                       Household size
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            2              1       Obs               9,600
+25%            3              1       Sum of wgt.       9,600
+
+50%            4                      Mean           3.968854
+                        Largest       Std. dev.      1.949719
+75%            5             15
+90%            6             16       Variance       3.801405
+95%            7             19       Skewness       1.094936
+99%           10             21       Kurtosis       5.857742
+
+       base household weight (adjusted for census 2021
+                 final count of Households)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     129.6236       60.43029
+ 5%     271.5177       60.43029
+10%      333.605       60.43029       Obs               9,600
+25%     430.2464       60.43029       Sum of wgt.       9,600
+
+50%      631.111                      Mean           748.4482
+                        Largest       Std. dev.      673.2142
+75%     865.0027       13625.16
+90%     1153.354       13625.16       Variance       453217.3
+95%     1551.607       13625.16       Skewness       9.963528
+99%     2952.178       13625.16       Kurtosis       172.5402
+
+      base individual weight (base adjusted hh weight x
+                       household size)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     334.1211       60.43029
+ 5%     569.9728       74.02474
+10%     791.1665       74.02474       Obs               9,600
+25%     1348.833       74.02474       Sum of wgt.       9,600
+
+50%     2254.085                      Mean           2993.802
+                        Largest       Std. dev.      3546.203
+75%     3595.796       68125.78
+90%     5505.714       81750.94       Variance       1.26e+07
+95%     7486.696       95376.09       Skewness       11.86942
+99%     14311.06       122626.4       Kurtosis       275.2895
+
+                    Urban/rural/ktm_urban
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            2              1       Obs               9,600
+25%            2              1       Sum of wgt.       9,600
+
+50%            2                      Mean            2.34375
+                        Largest       Std. dev.       .620988
+75%            3              3
+90%            3              3       Variance       .3856261
+95%            3              3       Skewness      -.3947028
+99%            3              3       Kurtosis       2.329597
+
+                 Paasche index -- food items
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .6885537       .2698722
+ 5%     .7854563       .3525216
+10%     .8312215       .3586512       Obs               9,600
+25%     .9101402       .3897249       Sum of wgt.       9,600
+
+50%      .996467                      Mean           1.003248
+                        Largest       Std. dev.      .1511125
+75%     1.087492       2.393229
+90%     1.172327        2.41763       Variance        .022835
+95%     1.231295       2.738319       Skewness       1.333933
+99%     1.433811       2.993077       Kurtosis       13.43464
+
+        Paasche-deflated per capita food expenditures
+                         (NRP/year)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     17704.26       8481.425
+ 5%      25115.1       9318.886
+10%     29874.56       9500.487       Obs               9,600
+25%     40155.19       9601.039       Sum of wgt.       9,600
+
+50%      56092.6                      Mean           64332.22
+                        Largest       Std. dev.      37163.35
+75%     77506.25       448306.3
+90%     107582.8         461758       Variance       1.38e+09
+95%     133993.4       473888.7       Skewness       2.480624
+99%     201900.6       486881.7       Kurtosis       15.45522
+
+     Spatially-deflated per capita nonfood expenditures
+                         (NPR/year)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     11250.84       2795.657
+ 5%     17751.65       5776.537
+10%     22579.83        6252.65       Obs               9,600
+25%     33963.17       6272.439       Sum of wgt.       9,600
+
+50%     54009.64                      Mean           73596.93
+                        Largest       Std. dev.      74912.39
+75%     89341.92       830736.1
+90%       143591        1211369       Variance       5.61e+09
+95%     187370.5        1673278       Skewness       10.10999
+99%       335534        3031339       Kurtosis         294.32
+
+         Spatially-deflated per capita expenditures
+                         (NRP/year)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        35586       13826.71
+ 5%     50092.04       17667.68
+10%      60564.8       22885.42       Obs               9,600
+25%     81852.28       22966.29       Sum of wgt.       9,600
+
+50%     114860.4                      Mean           137929.2
+                        Largest       Std. dev.      95447.56
+75%     165348.1        1083883
+90%       238243        1320425       Variance       9.11e+09
+95%     297377.1        1719726       Skewness       5.963234
+99%     476616.6        3100367       Kurtosis       119.2263
+
+        National Real Poverty Line (NPR/person/year)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     72908.05       72908.05
+ 5%     72908.05       72908.05
+10%     72908.05       72908.05       Obs               9,600
+25%     72908.05       72908.05       Sum of wgt.       9,600
+
+50%     72908.05                      Mean           72908.05
+                        Largest       Std. dev.             0
+75%     72908.05       72908.05
+90%     72908.05       72908.05       Variance              0
+95%     72908.05       72908.05       Skewness              .
+99%     72908.05       72908.05       Kurtosis              .
+
+      National Real Food Poverty Line (NPR/person/year)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     35028.96       35028.96
+ 5%     35028.96       35028.96
+10%     35028.96       35028.96       Obs               9,600
+25%     35028.96       35028.96       Sum of wgt.       9,600
+
+50%     35028.96                      Mean           35028.96
+                        Largest       Std. dev.             0
+75%     35028.96       35028.96
+90%     35028.96       35028.96       Variance              0
+95%     35028.96       35028.96       Skewness              .
+99%     35028.96       35028.96       Kurtosis              .
+
+             National Real Non-food Poverty Line
+                      (NPR/person/year)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     37879.09       37879.09
+ 5%     37879.09       37879.09
+10%     37879.09       37879.09       Obs               9,600
+25%     37879.09       37879.09       Sum of wgt.       9,600
+
+50%     37879.09                      Mean           37879.09
+                        Largest       Std. dev.             0
+75%     37879.09       37879.09
+90%     37879.09       37879.09       Variance              0
+95%     37879.09       37879.09       Skewness              .
+99%     37879.09       37879.09       Kurtosis              .
+
+                       Poverty status
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs               9,600
+25%            0              0       Sum of wgt.       9,600
+
+50%            0                      Mean           .1815625
+                        Largest       Std. dev.      .3855036
+75%            0              1
+90%            1              1       Variance        .148613
+95%            1              1       Skewness       1.652146
+99%            1              1       Kurtosis       3.729586
+
+                    Expenditure quintile
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            1              1
+ 5%            1              1
+10%            1              1       Obs               9,600
+25%            2              1       Sum of wgt.       9,600
+
+50%            3                      Mean           3.128229
+                        Largest       Std. dev.      1.426797
+75%            4              5
+90%            5              5       Variance       2.035749
+95%            5              5       Skewness      -.1095588
+99%            5              5       Kurtosis       1.688003
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\anil.shrestha\Downloads\test1\poverty_metadata.log
+  log type:  text
+ closed on:  21 Jun 2026, 21:56:02
+-------------------------------------------------------------------------------
