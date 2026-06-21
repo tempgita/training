@@ -1,0 +1,204 @@
+\documentclass[aspectratio=169]{beamer}
+
+% Theme selection
+\usetheme{Madrid}
+\usecolortheme{whale}
+
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\usepackage{fontspec}
+\usepackage[english, bidi=basic, provide=*]{babel}
+
+\babelprovide[import, onchar=ids fonts]{english}
+
+% Set default/Latin font to Sans Serif (Noto Sans)
+\babelfont{rm}{Noto Sans}
+\babelfont{sf}{Noto Sans} % Beamer primarily uses the sans-serif family
+\babelfont{tt}{Noto Sans Mono}
+
+% Remove navigation symbols for a cleaner look
+\setbeamertemplate{navigation symbols}{}
+
+% Title slide information
+\title[NSO Nepal AI Guide]{Using AI Tools to Prepare \\ Official Statistical Reports}
+\subtitle{A Practical Learning Guide for NSO Nepal Staff}
+\author[NSO Nepal]{National Statistics Office of Nepal}
+\date{June 2026}
+
+\begin{document}
+
+% Slide 1: Title Slide
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Slide 2: What AI Is (and Isn't)
+\begin{frame}{Step 1: The Right Mental Model}
+    \begin{block}{What is AI?}
+        Think of AI tools (ChatGPT, Claude, Gemini, DeepSeek, Qwen) like a very well-read, fast-writing colleague.
+    \end{block}
+    
+    \vspace{0.5cm}
+    
+    \textbf{What AI is EXCELLENT for:}
+    \begin{itemize}
+        \item Drafting narrative paragraphs from data you provide.
+        \item Rewriting awkward sentences into formal English.
+        \item Generating report outlines and structures.
+    \end{itemize}
+    
+    \vspace{0.5cm}
+    
+    \textbf{What AI is UNRELIABLE for:}
+    \begin{itemize}
+        \item Quoting specific statistics not provided to it.
+        \item AI can "hallucinate" (invent) plausible-sounding but incorrect numbers.
+    \end{itemize}
+\end{frame}
+
+% Slide 3: Prompt Engineering
+\begin{frame}{Step 2: Prompt Engineering (The RCTF Framework)}
+    \textbf{The quality of AI output depends entirely on your prompt.}
+    
+    \vspace{0.5cm}
+    
+    Use the \textbf{RCTF Framework} for NSO reports:
+    \begin{table}[]
+        \centering
+        \renewcommand{\arraystretch}{1.5}
+        \begin{tabular}{|l|p{8cm}|}
+            \hline
+            \textbf{R}ole & Tell AI who it is (\textit{"You are an official report writer for NSO Nepal"}) \\ \hline
+            \textbf{C}ontext & Provide your data (\textit{"Here is our CPI data for Q2 2024..."}) \\ \hline
+            \textbf{T}ask & State exactly what you want (\textit{"Write a press release narrative"}) \\ \hline
+            \textbf{F}ormat & Specify length, tone (\textit{"Formal, 150 words, no bullet points"}) \\ \hline
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+% Slide 3b: RCTF Example
+\begin{frame}{Step 2: RCTF Framework in Action (Example)}
+    \begin{exampleblock}{Full Prompt Example for a CPI Bulletin}
+        \textbf{[R]ole:} You are a senior economist drafting text for NSO Nepal's Consumer Price Index (CPI) bulletin. \\
+        
+        \vspace{0.2cm}
+        
+        \textbf{[C]ontext:} Data (FY 2023/24, Nepal): \\
+        - Overall CPI: 5.4\% (year-on-year) \\
+        - Food and beverages: 6.1\% \\
+        - Non-food and services: 4.9\% \\
+        
+        \vspace{0.2cm}
+        
+        \textbf{[T]ask:} Write the opening paragraph for the monthly CPI press release. State the headline figure and compare food vs. non-food inflation. \\
+        
+        \vspace{0.2cm}
+        
+        \textbf{[F]ormat:} Use a formal, official tone appropriate for a government press release. Be no longer than 120 words. Do NOT fabricate any additional statistics.
+    \end{exampleblock}
+\end{frame}
+
+% Slide 4: Outlining and Narratives
+\begin{frame}{Steps 3 \& 4: Outlines and Data-to-Narrative}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Structuring Reports}
+            \begin{itemize}
+                \item Never start with a blank page.
+                \item Ask AI to generate a complete section-by-section outline.
+                \item Adjust the outline to match NSO house style.
+            \end{itemize}
+        \end{column}
+        
+        \begin{column}{0.48\textwidth}
+            \textbf{Drafting Narratives}
+            \begin{enumerate}
+                \item \textbf{Extract data} (Excel/SPSS).
+                \item \textbf{Paste data IN the prompt}.
+                \item \textbf{Specify highlights} (tell AI what trends matter).
+                \item \textbf{Request narrative} (RCTF).
+                \item \textbf{Verify every number}.
+            \end{enumerate}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% Slide 5: Editing and Tone
+\begin{frame}{Steps 5 \& 6: Executive Summaries \& Editing}
+    \textbf{Drafting Summaries \& Press Releases}
+    \begin{itemize}
+        \item AI is excellent at translating complex statistical findings into clear language for policymakers and media.
+        \item Always include a clear headline and key findings.
+    \end{itemize}
+    
+    \vspace{0.5cm}
+    
+    \textbf{AI as an Editor}
+    \begin{itemize}
+        \item Paste your draft and ask AI to improve clarity, formality, and consistency.
+        \item \textit{Example Prompt:} "Rewrite this in formal, official language without losing meaning. Do NOT change any statistics."
+    \end{itemize}
+\end{frame}
+
+% Slide 6: Fact-Checking
+\begin{frame}{Step 7: Fact-Checking and Verification}
+    \begin{alertblock}{Never Trust AI Blindly}
+        AI can subtly introduce errors by rounding numbers, switching units, or confusing time periods.
+    \end{alertblock}
+    
+    \vspace{0.3cm}
+    \textbf{The NSO Verification Checklist:}
+    \begin{itemize}
+        \item [\checkmark] Every number verified against the source table.
+        \item [\checkmark] Units are correct (\%, percentage points, NRs, millions).
+        \item [\checkmark] Time periods match (e.g., FY 2023/24).
+        \item [\checkmark] Geographic scope is correct (national/urban/rural).
+        \item [\checkmark] No invented statistics not present in original data.
+    \end{itemize}
+\end{frame}
+
+% Slide 7: Ethics and Privacy
+\begin{frame}{Step 8: Ethics, Privacy, and Responsible AI}
+    \begin{block}{The Golden Question}
+        Before pasting any data into an AI tool, ask: \\
+        \textbf{"Would I post this on our website?"}
+    \end{block}
+    
+    \vspace{0.5cm}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textcolor{green}{\textbf{✓ Safe to Paste}}
+            \begin{itemize}
+                \item Published aggregate statistics
+                \item Your own draft text for editing
+                \item Publicly available NSO reports
+            \end{itemize}
+        \end{column}
+        
+        \begin{column}{0.48\textwidth}
+            \textcolor{red}{\textbf{X NEVER Paste}}
+            \begin{itemize}
+                \item Individual/household microdata
+                \item Embargoed pre-release data
+                \item Internal HR or policy docs
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% Slide 8: The Five Golden Rules
+\begin{frame}{Summary: The Five Golden Rules}
+    \begin{enumerate}
+        \Large
+        \item \textbf{You bring the data. AI brings the words.}
+        \vspace{0.3cm}
+        \item \textbf{Always verify every number in AI output.}
+        \vspace{0.3cm}
+        \item \textbf{Never paste confidential or unpublished data into AI.}
+        \vspace{0.3cm}
+        \item \textbf{Use the RCTF framework for every prompt.}
+        \vspace{0.3cm}
+        \item \textbf{AI is a tool. You are the expert.}
+    \end{enumerate}
+\end{frame}
+
+\end{document}

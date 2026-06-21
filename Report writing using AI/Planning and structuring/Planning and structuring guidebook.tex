@@ -1,0 +1,840 @@
+\documentclass[11pt,a4paper,oneside]{book}
+
+% --- CORE LAYOUT AND GEOMETRY ---
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{fontspec}
+\usepackage[english, bidi=basic, provide=*]{babel}
+
+% Setup Noto Sans as the main font family
+\babelprovide[import, onchar=ids fonts]{english}
+\babelfont{rm}{Noto Sans}
+
+% --- TECHNICAL PACKAGES ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{parskip} % For clean paragraph spacing instead of indentation
+
+% --- COLOR DEFINITIONS (GoN Inspired Palette) ---
+\definecolor{nsoblue}{RGB}{27, 54, 93}       % Official Deep Blue
+\definecolor{nsored}{RGB}{166, 25, 46}       % Crimson Flag Accent
+\definecolor{lightbg}{RGB}{245, 247, 250}    % Soft Light Slate Gray
+\definecolor{darkgray}{RGB}{80, 80, 80}      % Subdued text
+
+% --- HYPERREF SETUP (Color-matched to palette) ---
+\usepackage[colorlinks=true, linkcolor=nsoblue, urlcolor=nsored, citecolor=nsoblue]{hyperref}
+
+% --- CHAPTER & SECTION TYPOGRAPHY ---
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{nsoblue}}
+  {\filright\Large\bfseries\color{nsored}\chaptername\ \thechapter}
+  {0.5ex}
+  {\titlerule[1.5pt]\vspace{1ex}\filright}
+  [\vspace{1ex}\titlerule]
+  
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{nsoblue}}
+  {\thesection}{1em}{}
+  
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{nsored}}
+  {\thesubsection}{1em}{}
+
+% --- HEADER & FOOTER STYLE ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{darkgray}\itshape Planning and Structuring of Official Report Writing}
+\fancyhead[R]{\small\color{darkgray}\itshape NSO Nepal}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+
+% --- CUSTOM BOX STYLES ---
+\tcbset{
+    nsoshadedbox/.style={
+        colback=lightbg,
+        colframe=nsoblue,
+        arc=2mm,
+        boxrule=1.5pt,
+        left=15pt,
+        right=15pt,
+        top=15pt,
+        bottom=15pt
+    },
+    nsolightbox/.style={
+        colback=lightbg,
+        colframe=gray!30,
+        arc=1.5mm,
+        boxrule=0.5pt,
+        left=12pt,
+        right=12pt,
+        top=12pt,
+        bottom=12pt
+    }
+}
+
+\begin{document}
+
+\frontmatter
+
+% ==========================================
+% TITLE PAGE
+% ==========================================
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge\bfseries\color{nsoblue} Planning and Structuring\\ of Official Report Writing\par}
+    \vspace{1.5cm}
+    {\Large\bfseries\color{nsored} A Learning Guide for the\\ National Statistics Office Nepal\par}
+    \vspace{3.5cm}
+    
+    % Professional seal / typographic design representing GoN NSO
+    \begin{tcolorbox}[colback=white, colframe=nsoblue, width=7.5cm, height=3.5cm, arc=2mm, halign=center, valign=center, boxrule=2pt]
+        \centering\bfseries\color{nsoblue}
+        \large GOVERNMENT OF NEPAL\\
+        \vspace{0.3cm}
+        \Large NATIONAL STATISTICS OFFICE\\
+        \vspace{0.2cm}
+        \small KATHMANDU, NEPAL
+    \end{tcolorbox}
+    
+    \vfill
+    {\large\bfseries\color{nsoblue} Prepared for the Staff of NSO Nepal}\\[0.5em]
+    {\large\color{darkgray} Kathmandu, Nepal}\\[1.5em]
+    {\large\bfseries\color{nsored} June 2026}
+\end{titlepage}
+
+% ==========================================
+% PREFACE / ABOUT THIS GUIDE
+% ==========================================
+\chapter*{About This Guide}
+\addcontentsline{toc}{chapter}{About This Guide}
+
+This guide was prepared for staff at the National Statistics Office (NSO) Nepal. It covers the full workflow of official and statistical report writing --- from choosing the right report type to publishing a polished, quality-assured document. It includes dedicated guidance on press releases throughout.
+
+There is a file you can reference named ``NSO\_Nepal\_Official\_Report\_Writing\_Guide.md''. Refer to this file by its name verbatim.
+
+\vspace{1.5cm}
+\begin{tcolorbox}[nsoshadedbox, title=\textbf{How to Use This Handbook}]
+    This document is structured logically as a step-by-step framework. Readers are encouraged to use the tables and checklists directly during their actual writing and review processes to maintain the high quality and credibility of NSO publications.
+\end{tcolorbox}
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\mainmatter
+
+% ==========================================
+% CHAPTER 1
+% ==========================================
+\chapter{The Landscape of Official Reports}
+
+\section{What Is an ``Official Report''?}
+
+An official report is a \textbf{structured, purposeful document} produced by a government institution or statistical body to communicate factual information, findings, or decisions to a defined audience. Unlike personal writing or academic essays, official reports follow recognized conventions --- they must be \textbf{accurate, objective, neutral in tone, and traceable} (meaning claims are backed by data or cited sources).
+
+For NSO Nepal, reports are the primary vehicle through which national statistics are shared with government ministries, policymakers, the media, the public, and international partners like the World Bank or UN agencies.
+
+\section{The Main Types of Official and Statistical Reports}
+
+To communicate effectively, NSO staff must navigate different publications. The following table details the core landscape of report types:
+
+\begin{table}[htbp]
+\centering
+\caption{The Landscape of Official and Statistical Reports}
+\label{tab:report_types}
+\vspace{0.3cm}
+\begin{tabularx}{\textwidth}{c p{3.8cm} X X}
+\toprule
+\textbf{No.} & \textbf{Report Type} & \textbf{Core Purpose} & \textbf{Primary Audience} \\
+\midrule
+1 & \textbf{Statistical Bulletin / Release} & Regularly publish key indicators (e.g., CPI, GDP) & Government, media, public \\
+\addlinespace
+2 & \textbf{Press Release} & Announce a finding or publication quickly and accessibly & Media, general public \\
+\addlinespace
+3 & \textbf{Statistical Abstract / Compendium} & Comprehensive collection of data across sectors & Researchers, planners \\
+\addlinespace
+4 & \textbf{Analytical / Thematic Report} & In-depth analysis of a specific topic (e.g., poverty, gender) & Policymakers, donors, researchers \\
+\addlinespace
+5 & \textbf{Census / Survey Report} & Document methodology, findings, and tables from a census or survey & All stakeholders \\
+\addlinespace
+6 & \textbf{Administrative / Internal Report} & Progress updates, evaluations, meeting minutes for internal use & NSO management, ministries \\
+\addlinespace
+7 & \textbf{Technical / Methodology Report} & Explain \emph{how} data was collected, processed, and validated & Technical peers, statisticians \\
+\addlinespace
+8 & \textbf{Policy Brief} & Concise, action-oriented summary for decision-makers & Ministers, senior officials \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{A Closer Look at Key Types}
+
+\subsection*{Statistical Bulletin}
+This is the workhorse of a statistics office. Published on a fixed schedule (monthly, quarterly, annually), it presents data with minimal narrative --- numbers, tables, and brief commentary. Example: \emph{Nepal Consumer Price Index --- Monthly Bulletin}.
+
+\subsection*{Press Release}
+A press release is a \textbf{short, structured announcement} (usually 1--2 pages) that highlights the most newsworthy findings from a just-published report or dataset. It is written for \textbf{journalists and the public} --- not statisticians. It must be simple, direct, and free of jargon.
+
+For NSO Nepal, a press release might announce: \emph{``Nepal's inflation rose to 6.2\% in Baisakh 2082 --- NSO Nepal''}.
+
+It is often the \textbf{first public-facing document} released alongside a statistical bulletin, and how it is written determines how statistics get reported in the media.
+
+\subsection*{Analytical / Thematic Report}
+Goes beyond numbers to explain \emph{what they mean}. It includes context, comparisons, and sometimes recommendations. Example: \emph{Nepal Multiple Indicator Cluster Survey (MICS) --- Key Findings Report}.
+
+\subsection*{Census / Survey Report}
+The most comprehensive type --- covers background, design, methodology, data quality, findings, and annexes. These are major publications that take months to prepare. Example: \emph{National Population and Housing Census 2078 --- National Report}.
+
+\subsection*{Policy Brief}
+Very short (2--4 pages), highly focused, and explicitly recommends action. Written so a Minister can read it in 5 minutes and know what to do.
+
+\section{Why Does the Distinction Matter?}
+
+Each report type has \textbf{different rules} for length, tone, structure, and audience. Mixing these up is a common mistake --- for example, writing a press release that reads like a methodology report, or publishing a policy brief that buries the recommendation on page 10. Learning which type to use \emph{before you start writing} saves time and produces far better results.
+
+\begin{tcolorbox}[nsolightbox]
+\textbf{Key Takeaway:} Official reports are not all the same --- they differ by purpose, audience, and structure. The first decision in any writing task is: \emph{What kind of report is this, and who is it for?}
+\end{tcolorbox}
+
+
+% ==========================================
+% CHAPTER 2
+% ==========================================
+\chapter{Choosing the Right Report for the Right Situation}
+
+\section{The Core Question}
+
+Before writing a single word, ask yourself \textbf{three questions}:
+
+\begin{enumerate}
+    \item \textbf{Who is my audience?} (Journalists? Ministers? Statisticians? The general public?)
+    \item \textbf{What action or understanding do I want from them?} (To report the news? To make a policy decision? To replicate our methodology?)
+    \item \textbf{What is the urgency and occasion?} (Is this a scheduled release? A one-time survey result? An emergency announcement?)
+\end{enumerate}
+
+Your answers will point directly to the right report type.
+
+\section{Decision Guide: When to Write What}
+
+The following matrix directs you to the optimal publication standard based on typical operational triggers:
+
+\begin{table}[htbp]
+\centering
+\caption{Decision Guide: When to Write What}
+\label{tab:decision_guide}
+\vspace{0.3cm}
+\begin{tabularx}{\textwidth}{X p{6cm}}
+\toprule
+\textbf{Situation} & \textbf{Best Report Type} \\
+\midrule
+Monthly/quarterly data is ready (CPI, trade, employment) & \textbf{Statistical Bulletin} \\
+\addlinespace
+You're publishing a bulletin and want media coverage & \textbf{Press Release} (issued \emph{alongside} the bulletin) \\
+\addlinespace
+A minister needs a 5-minute read before a meeting & \textbf{Policy Brief} \\
+\addlinespace
+You've completed a national census or survey & \textbf{Census / Survey Report} \\
+\addlinespace
+You want to analyse trends across multiple indicators over time & \textbf{Analytical / Thematic Report} \\
+\addlinespace
+A peer institution asks how you collected your data & \textbf{Technical / Methodology Report} \\
+\addlinespace
+You need to brief your director on project progress & \textbf{Administrative / Internal Report} \\
+\addlinespace
+An international donor wants a country data summary & \textbf{Statistical Abstract / Compendium} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{The Press Release --- When and Why to Issue One}
+
+A press release should be issued \textbf{every time} NSO Nepal publishes data that has public significance --- inflation figures, population estimates, employment rates, poverty statistics. It should:
+
+\begin{itemize}
+    \item Come out \textbf{simultaneously} with the main statistical release (not days later)
+    \item Be \textbf{sent directly} to journalists, news portals, and social media teams
+    \item Contain \textbf{one or two headline numbers} --- not the full dataset
+    \item Be written so a journalist can reproduce the story almost word for word
+\end{itemize}
+
+\begin{tcolorbox}[nsolightbox, colframe=nsored, title=\textbf{Common Mistake}]
+    Issuing a press release days \emph{after} the bulletin, when journalists have already sourced data elsewhere (often incorrectly). \textbf{Timing is everything.}
+\end{tcolorbox}
+
+\section{A Practical Example from NSO Nepal}
+
+Suppose NSO Nepal has just completed the \textbf{Nepal Labour Force Survey 2081}. Here is what you would produce --- and in what order:
+
+\begin{enumerate}
+    \item \textbf{Technical/Methodology Report} --- for statisticians and peer reviewers (internal first)
+    \item \textbf{Survey Report} --- full findings, published as the main document
+    \item \textbf{Analytical Report} --- thematic deep-dive (e.g., youth unemployment)
+    \item \textbf{Press Release} --- issued on launch day, announcing headline findings
+    \item \textbf{Policy Brief} --- prepared for the Ministry of Labour summarising key policy implications
+\end{enumerate}
+
+All five are needed. All five are different documents.
+
+\begin{tcolorbox}[nsolightbox]
+\textbf{Key Takeaway:} The report type is determined by \emph{who reads it} and \emph{what they need to do with it}. Always identify your audience and purpose before you structure anything.
+\end{tcolorbox}
+
+
+% ==========================================
+% CHAPTER 3
+% ==========================================
+\chapter{Structuring the Outline}
+
+\section{Why Outlining Comes First}
+
+Writing without an outline is like building a house without a blueprint. For official reports especially, where accuracy, completeness, and logical flow are non-negotiable, a solid outline:
+
+\begin{itemize}
+    \item Ensures you don't miss critical sections
+    \item Helps multiple authors divide work clearly
+    \item Prevents the report from growing in unplanned directions
+    \item Makes peer review and editing much faster
+\end{itemize}
+
+\section{The Universal Outline Framework}
+
+Most official reports --- regardless of type --- follow this high-level skeleton:
+
+\begin{tcolorbox}[nsoshadedbox, title=\textbf{Universal Structure Blueprint}]
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Front Matter}
+    \begin{itemize}
+        \item Title page
+        \item Foreword / Preface
+        \item Table of Contents
+        \item List of Tables and Figures
+        \item Abbreviations
+    \end{itemize}
+    \item \textbf{Introductory Section}
+    \begin{itemize}
+        \item Background / Context
+        \item Objectives
+        \item Scope and Coverage
+    \end{itemize}
+    \item \textbf{Core Content}
+    \begin{itemize}
+        \item Methodology (how data was collected/processed)
+        \item Findings / Results (the main substance)
+        \item Analysis / Interpretation
+    \end{itemize}
+    \item \textbf{Concluding Section}
+    \begin{itemize}
+        \item Summary / Conclusions
+        \item Recommendations (where applicable)
+    \end{itemize}
+    \item \textbf{Back Matter}
+    \begin{itemize}
+        \item References / Bibliography
+        \item Annexes / Appendices
+        \item Glossary
+    \end{itemize}
+\end{enumerate}
+\end{tcolorbox}
+
+This framework \textbf{scales up or down} depending on the report type. A press release uses only items from sections 2 and 3 --- compressed into 3--5 short paragraphs. A census report uses everything.
+
+\section{Tailoring the Outline by Report Type}
+
+\subsection*{Statistical Bulletin Outline}
+\begin{tcolorbox}[nsolightbox]
+Cover $\rightarrow$ Key Highlights $\rightarrow$ Data Tables $\rightarrow$ Short Analytical Notes $\rightarrow$ Methodology Note $\rightarrow$ Contact
+\end{tcolorbox}
+
+\subsection*{Press Release Outline}
+\begin{tcolorbox}[nsolightbox]
+Headline $\rightarrow$ Dateline $\rightarrow$ Opening paragraph (the news) $\rightarrow$ Key findings (2--3 bullets or short paragraphs) $\rightarrow$ Context sentence $\rightarrow$ Quote from Director General $\rightarrow$ Boilerplate (about NSO Nepal) $\rightarrow$ Contact details
+\end{tcolorbox}
+
+\subsection*{Analytical Report Outline}
+\begin{tcolorbox}[nsolightbox]
+Cover $\rightarrow$ Foreword $\rightarrow$ Executive Summary $\rightarrow$ Introduction $\rightarrow$ Data Sources \& Methods $\rightarrow$ Thematic Findings (by chapter) $\rightarrow$ Conclusions \& Recommendations $\rightarrow$ References $\rightarrow$ Annexes
+\end{tcolorbox}
+
+\subsection*{Policy Brief Outline}
+\begin{tcolorbox}[nsolightbox]
+Title $\rightarrow$ Key Message (1 sentence) $\rightarrow$ Background (5--6 lines) $\rightarrow$ Evidence (2--3 findings) $\rightarrow$ Policy Options $\rightarrow$ Recommended Action $\rightarrow$ Further Reading
+\end{tcolorbox}
+
+\section{How to Build Your Outline in Practice}
+
+\begin{enumerate}
+    \item \textbf{Start with purpose}: Write one sentence --- \emph{``This report will help [audience] understand/decide [X].''}
+    \item \textbf{List the questions your reader will have} --- your sections should answer each one.
+    \item \textbf{Group related questions} into logical chapters or sections.
+    \item \textbf{Order them} from general to specific, or from context to findings to recommendations.
+    \item \textbf{Assign approximate length} to each section so you know where the weight of the report falls.
+\end{enumerate}
+
+\begin{tcolorbox}[nsolightbox, colframe=nsored, title=\textbf{NSO Nepal Tip}]
+    For census and survey reports, outlines are often guided by templates from UNFPA, UNICEF, or the UN Statistics Division. Always check whether a template already exists before building from scratch.
+\end{tcolorbox}
+
+\begin{tcolorbox}[nsolightbox]
+\textbf{Key Takeaway:} An outline is not a table of contents --- it is a \emph{thinking tool}. It forces you to decide what the report needs to contain \emph{before} you write. Invest time here and the actual writing becomes much easier.
+\end{tcolorbox}
+
+
+% ==========================================
+% CHAPTER 4
+% ==========================================
+\chapter{What to Include in Each Section}
+
+\section{The Anatomy of an Official Report}
+
+Let's go section by section, covering what each must contain to be effective.
+
+\subsection*{Title Page}
+Must include: report title, subtitle (if any), publishing institution (NSO Nepal), date/period covered, and edition number (for recurring reports). The GoN emblem is standard for NSO Nepal publications.
+
+\subsection*{Foreword / Preface}
+Written by the Director General or a senior official. Typically 1--2 paragraphs. It:
+\begin{itemize}
+    \item Contextualises the importance of the report
+    \item Thanks contributors/funders
+    \item Does \textbf{not} repeat findings --- that is the Executive Summary's job
+\end{itemize}
+
+\subsection*{Executive Summary}
+The most-read section of any long report. It should:
+\begin{itemize}
+    \item Stand alone --- a reader who reads \emph{only this} should understand the report's main message
+    \item Be written \textbf{last} (after all other sections are finalised)
+    \item Be short: 1--2 pages for a major report; 3--5 lines for a bulletin
+    \item Highlight: purpose, key findings, and (if applicable) key recommendations
+\end{itemize}
+
+\subsection*{Introduction / Background}
+Sets the scene. Answers:
+\begin{itemize}
+    \item Why was this report written?
+    \item What statistical question or policy need does it address?
+    \item What is the time period, geography, and population covered?
+    \item How does it relate to previous reports in the series?
+\end{itemize}
+
+\subsection*{Methodology / Data Sources}
+Critical for any statistical report --- this is what makes your findings credible and replicable. Include:
+\begin{itemize}
+    \item Data source(s) (administrative records, survey, census, satellite data)
+    \item Sample design (if a survey): sampling frame, sample size, stratification
+    \item Data collection period and methods
+    \item Processing steps: editing, imputation, weighting
+    \item Key limitations and caveats
+\end{itemize}
+
+\begin{tcolorbox}[nsolightbox]
+    For a \textbf{press release}, methodology is reduced to one line:\\
+    \emph{``Data is sourced from the Nepal Consumer Price Index survey conducted across 5 ecological zones covering 77 districts.''}
+\end{tcolorbox}
+
+\subsection*{Findings / Results}
+The heart of the report. Structure this by:
+\begin{itemize}
+    \item \textbf{Thematic chapters} for large reports (e.g., Chapter 3: Employment; Chapter 4: Wages)
+    \item \textbf{Indicator sections} for bulletins (e.g., 3.1 Overall CPI; 3.2 Food Inflation)
+\end{itemize}
+
+Each finding should include:
+\begin{itemize}
+    \item The number/fact itself
+    \item A comparison (to previous period, national target, or international benchmark)
+    \item A brief interpretation --- what does this change \emph{mean}?
+    \item A supporting table or chart
+\end{itemize}
+
+\subsection*{Analysis / Discussion}
+Goes beyond presenting data to explaining it:
+\begin{itemize}
+    \item What patterns emerge?
+    \item What are the possible explanations?
+    \item Are there regional, gender, or income-level differences worth highlighting?
+    \item How does this compare to other countries or previous surveys?
+\end{itemize}
+
+Keep this section \textbf{objective} --- analysis in an official statistical report is descriptive and comparative, not opinionated.
+
+\subsection*{Conclusions and Recommendations}
+\begin{itemize}
+    \item \textbf{Conclusions}: Summarise what the data \emph{shows}
+    \item \textbf{Recommendations}: Suggest what should be \emph{done} (include only if the report brief calls for it --- not all statistical reports make recommendations; policy briefs always do)
+\end{itemize}
+
+\subsection*{Annexes}
+House technical material that would slow down the main text:
+\begin{itemize}
+    \item Full data tables
+    \item Survey questionnaires
+    \item Sampling frame details
+    \item Definitions and classifications used (e.g., NSCO, NACE codes)
+\end{itemize}
+
+\section{The Press Release --- Section by Section}
+
+Below is the standard, approved block structure for NSO Nepal press statements. Note: Spacing is controlled cleanly to prevent compiler issues:
+
+\begin{tcolorbox}[nsoshadedbox, title=\textbf{Standard NSO Press Release Template}]
+\begin{center}
+  \bfseries\color{nsoblue}
+  [NSO NEPAL LOGO / LETTERHEAD]
+\end{center}
+\vspace{0.2cm}
+
+\normalfont\small
+\textbf{FOR IMMEDIATE RELEASE} \hfill Date: [Baisakh 15, 2082 / 28 April 2025]
+\vspace{0.4cm}
+
+\begin{center}
+  {\large\bfseries\color{nsored} HEADLINE: Nepal's Inflation Rises to 6.2\% in Baisakh 2082}\\
+  {\small\itshape (One sentence, factual, and newsworthy)}
+\end{center}
+\vspace{0.4cm}
+
+\textbf{KATHMANDU} --- [Opening paragraph: the single most important fact, written in plain language. Answer: what happened, when, how much?]
+
+\vspace{0.3cm}
+[Body paragraph 1: Second most important finding. Include a comparison to a previous period or benchmark.]
+
+\vspace{0.3cm}
+[Body paragraph 2: Context --- what is driving the change?]
+
+\vspace{0.3cm}
+[Quote: ``...'' said [Name], Director General, NSO Nepal.]
+
+\vspace{0.3cm}
+[Boilerplate: One standard paragraph about NSO Nepal --- who we are, what we publish, website URL.]
+
+\vspace{0.5cm}
+\textbf{For more information contact:}
+
+[Name, Title, Email, Phone]
+
+\vspace{0.6cm}
+\begin{center}
+  \bfseries\color{nsored}
+  \#\#\#\\
+  \small\itshape (Three hash marks signal the end of a press release)
+\end{center}
+\end{tcolorbox}
+
+\begin{tcolorbox}[nsolightbox, colframe=nsored, title=\textbf{Golden Rule for Press Releases}]
+    The most important information goes \textbf{first}. Journalists cut from the bottom --- so if your release is trimmed, the headline and first paragraph must still tell the full story.
+\end{tcolorbox}
+
+\begin{tcolorbox}[nsolightbox]
+\textbf{Key Takeaway:} Every section of a report has a job. When you know that job, you know what to include --- and equally importantly, what \emph{not} to include. Misplaced content erodes a report's credibility.
+\end{tcolorbox}
+
+
+% ==========================================
+% CHAPTER 5
+% ==========================================
+\chapter{Writing with Statistical Precision}
+
+\section{The Language of Official Statistics}
+
+Statistical reports must balance two sometimes competing demands: \textbf{technical accuracy} and \textbf{accessibility}. At NSO Nepal, your reports are read by both statisticians and ministers who may have no statistical background. The goal is precision that is still readable.
+
+\section{Key Principles}
+
+\subsection*{1. Let the number lead, then explain it}
+
+\begin{itemize}
+    \item \textbf{Weak:} \emph{``There has been a significant upward trend in price levels.''}
+    \item \textbf{Strong:} \emph{``Consumer prices rose by 6.2\% year-on-year in Baisakh 2082, up from 5.8\% in Chaitra 2081.''}
+\end{itemize}
+
+Always give the actual number first. Avoid vague adjectives like ``significant,'' ``high,'' or ``considerable'' --- they mean different things to different readers.
+
+\subsection*{2. Be precise about what you are measuring}
+
+Specify:
+\begin{itemize}
+    \item The \textbf{indicator}: Is it the unemployment \emph{rate} or the number of \emph{unemployed persons}?
+    \item The \textbf{reference period}: Month, quarter, fiscal year (always specify whether Nepali or English calendar)
+    \item The \textbf{population}: All persons aged 15+? Urban households only?
+\end{itemize}
+
+\subsection*{3. Distinguish clearly between percentage and percentage points}
+
+This is one of the most common errors in statistical writing.
+
+\begin{itemize}
+    \item If inflation rises from \textbf{5\% to 6\%}, it has risen by \textbf{1 percentage point} --- not ``by 1\%.''
+    \item A 1\% \emph{increase} in a 5\% rate would bring it to \textbf{5.05\%}.
+\end{itemize}
+
+This distinction matters enormously in public communication --- getting it wrong may cause journalists to misreport your figure by a factor of five.
+
+\subsection*{4. Use tables and figures correctly}
+
+Every table and figure must have:
+\begin{itemize}
+    \item A \textbf{number} (Table 3.1, Figure 2)
+    \item A \textbf{title} that fully describes what it shows (no need to re-read the text)
+    \item A \textbf{unit of measurement} in the header or subtitle
+    \item A \textbf{source line} at the bottom \emph{(Source: NSO Nepal, NLFS 2081)}
+    \item A \textbf{note} for any footnotes, exclusions, or rounding
+\end{itemize}
+
+Keep tables \textbf{in the text near where they are referenced} --- don't hide them all in annexes.
+
+\subsection*{5. Qualify uncertainty honestly}
+
+If estimates carry margins of error, say so. If data from a district is unreliable due to small sample size, flag it. Transparency about data quality is a mark of a credible statistical office, not a weakness.
+
+\section{Writing the Press Release with Statistical Precision}
+
+The press release is the \emph{public face} of your statistics. Rules here:
+
+\begin{itemize}
+    \item \textbf{Round numbers intelligently}: Say \emph{``about 1.2 million persons''} rather than \emph{``1,213,447 persons''} in a headline --- but give the precise figure in the body or in a linked table.
+    \item \textbf{Avoid relative comparisons without anchors}: Don't say \emph{``poverty fell by 30\%.''} Say \emph{``poverty fell from 25.2\% in 2010/11 to 17.4\% in 2022/23.''}
+    \item \textbf{Define any term a non-statistician might not know}: If you use ``labour force participation rate,'' briefly define it in brackets the first time.
+\end{itemize}
+
+\begin{tcolorbox}[nsolightbox]
+\textbf{Key Takeaway:} Precision is not about using complex language --- it is about using \emph{exact} language. Numbers must be anchored in time, population, and units. Vague statistical writing erodes public trust in official data.
+\end{tcolorbox}
+
+
+% ==========================================
+% CHAPTER 6
+% ==========================================
+\chapter{Review, Quality Assurance, and Finalization}
+
+\section{Why Quality Assurance (QA) Is Non-Negotiable}
+
+A statistical report published with an error --- a wrong number, a mislabelled table, an inconsistency between the text and a chart --- damages the credibility of the institution, not just the individual author. For NSO Nepal, which is the custodian of Nepal's official statistics, every report represents the office's reputation.
+
+\section{The QA Checklist}
+
+Every report must pass this checklist before publication:
+
+\subsection*{Factual / Data Accuracy}
+\begin{itemize}
+    \item[\(\square\)] Do all numbers in the text match the numbers in the tables?
+    \item[\(\square\)] Are comparisons to previous periods correct?
+    \item[\(\square\)] Have totals and sub-totals been cross-checked?
+    \item[\(\square\)] Are percentage change calculations verified?
+\end{itemize}
+
+\subsection*{Consistency}
+\begin{itemize}
+    \item[\(\square\)] Is the same number written the same way throughout?
+    \item[\(\square\)] Are table and figure numbers sequential and correctly referenced in the text?
+    \item[\(\square\)] Is the time period described consistently (e.g., Baisakh 2082 vs. April/May 2025)?
+\end{itemize}
+
+\subsection*{Language and Clarity}
+\begin{itemize}
+    \item[\(\square\)] Is the executive summary consistent with the findings section?
+    \item[\(\square\)] Has jargon been defined on first use?
+    \item[\(\square\)] Are section headings clear and descriptive?
+\end{itemize}
+
+\subsection*{Formatting and Style}
+\begin{itemize}
+    \item[\(\square\)] Is the NSO Nepal house style applied (fonts, logos, page numbering, headers/footers)?
+    \item[\(\square\)] Are tables and figures properly titled and sourced?
+    \item[\(\square\)] Is the Table of Contents accurate and up to date?
+\end{itemize}
+
+\subsection*{Press Release --- Specific Checks}
+\begin{itemize}
+    \item[\(\square\)] Does the headline accurately reflect the most important number?
+    \item[\(\square\)] Is the release dated and marked ``For Immediate Release''?
+    \item[\(\square\)] Does it include the contact person's details?
+    \item[\(\square\)] Has a senior official reviewed the quote attributed to them?
+\end{itemize}
+
+\section{The Review Workflow}
+
+A robust review process typically involves at least \textbf{three layers}:
+
+\begin{center}
+\begin{tcolorbox}[nsolightbox, width=0.8\textwidth, halign=center]
+    \textbf{\color{nsoblue}Author}\\
+    \(\downarrow\)\\
+    \textbf{\color{nsoblue}Subject-matter Peer Review}\\
+    \(\downarrow\)\\
+    \textbf{\color{nsoblue}Statistical / Technical Review}\\
+    \(\downarrow\)\\
+    \textbf{\color{nsoblue}Management Sign-off}\\
+    \(\downarrow\)\\
+    \textbf{\color{nsored}Publication}
+\end{tcolorbox}
+\end{center}
+
+For major publications (census, survey reports), NSO Nepal may also conduct:
+\begin{itemize}
+    \item \textbf{External expert review} (international consultants, academic peers)
+    \item \textbf{Pre-publication stakeholder consultation} (with relevant ministries)
+\end{itemize}
+
+\section{Finalization Checklist Before Publishing}
+
+\begin{itemize}
+    \item[\(\square\)] All data verified against source datasets
+    \item[\(\square\)] Final text approved by Director General (or delegated authority)
+    \item[\(\square\)] Press release prepared and ready to send simultaneously
+    \item[\(\square\)] PDF locked and file named correctly \emph{(e.g., NSO\_CPI\_Baisakh2082\_Final.pdf)}
+    \item[\(\square\)] Report uploaded to NSO Nepal website with correct metadata
+    \item[\(\square\)] Press release distributed to media list
+    \item[\(\square\)] Social media posts scheduled (if applicable)
+\end{itemize}
+
+\begin{tcolorbox}[nsolightbox]
+\textbf{Key Takeaway:} Quality assurance is a process, not a single proofread. Build review stages into your production schedule --- not as an afterthought at the end, but as planned milestones.
+\end{tcolorbox}
+
+
+% ==========================================
+% CHAPTER 7
+% ==========================================
+\chapter{Synthesis: From Blank Page to Published Report}
+
+\section{Bringing It All Together}
+
+All the building blocks are now in place. Here is how they connect in a real NSO Nepal scenario.
+
+\section{Worked Example: NSO Nepal Publishes the \emph{Nepal Consumer Price Index --- Baisakh 2082}}
+
+\textbf{Situation}: It is the end of Baisakh. The monthly CPI data processing is complete. Your job is to manage the publication from start to finish.
+
+\subsection*{Stage 1 --- Identify what you need to produce}
+
+\begin{table}[htbp]
+\centering
+\caption{Required Output Documents}
+\label{tab:cpi_outputs}
+\vspace{0.3cm}
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\textbf{Document} & \textbf{Type} & \textbf{Audience} \\
+\midrule
+CPI Monthly Bulletin & Statistical Bulletin & Government ministries, researchers, public \\
+\addlinespace
+Press Release & Press Release & Media, general public \\
+\addlinespace
+Internal briefing note & Administrative Report & Director General / NPC \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{Stage 2 --- Build the outline before writing}
+
+\noindent\textbf{CPI Bulletin Outline:}
+\begin{tcolorbox}[nsolightbox]
+Cover $\rightarrow$ Key Highlights Box $\rightarrow$ 1. Introduction $\rightarrow$ 2. Overall CPI $\rightarrow$ 3. Food Inflation $\rightarrow$ 4. Non-Food Inflation $\rightarrow$ 5. Regional Breakdown $\rightarrow$ 6. Methodology Note $\rightarrow$ Data Tables $\rightarrow$ Contact
+\end{tcolorbox}
+
+\noindent\textbf{Press Release Outline:}
+\begin{tcolorbox}[nsolightbox]
+Headline $\rightarrow$ Opening (overall CPI figure + change) $\rightarrow$ Food inflation finding $\rightarrow$ Regional highlight $\rightarrow$ Context sentence $\rightarrow$ DG Quote $\rightarrow$ Boilerplate $\rightarrow$ Contact
+\end{tcolorbox}
+
+\subsection*{Stage 3 --- Write each document for its audience}
+\begin{itemize}
+    \item The \emph{bulletin} uses precise tables, percentage point language, and full methodology.
+    \item The \emph{press release} uses one headline number, plain language, and a human quote.
+    \item The \emph{internal note} uses bullet points and summary recommendations.
+\end{itemize}
+
+\subsection*{Stage 4 --- Review before publishing}
+Peer reviewer checks all figures. Manager checks the press release quote. Director General signs off. Everything is scheduled to go out at 10:00 AM on publication day --- bulletin, press release, and website update simultaneously.
+
+\section{The Mental Model to Carry Forward}
+
+This sequential process remains uniform for all document workflows:
+
+\begin{center}
+\begin{tcolorbox}[nsoshadedbox, width=0.8\textwidth, halign=center]
+\textbf{Purpose + Audience}\\
+\(\downarrow\)\\
+\textbf{Report Type}\\
+\(\downarrow\)\\
+\textbf{Outline}\\
+\(\downarrow\)\\
+\textbf{Section Content}\\
+\(\downarrow\)\\
+\textbf{Statistical Precision}\\
+\(\downarrow\)\\
+\textbf{Quality Review}\\
+\(\downarrow\)\\
+\textbf{Publication}
+\end{tcolorbox}
+\end{center}
+
+Every official report --- from a 2-page press release to a 300-page census --- follows this same logic. The scale changes; the thinking does not.
+
+
+% ==========================================
+% CHAPTER 8 (SUMMARY AND NEXT STEPS)
+% ==========================================
+\chapter{Summary and Next Steps}
+
+\section{What You Now Understand}
+
+We have covered the end-to-end framework of high-quality report writing at NSO Nepal. Below is a final diagnostic summary:
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of Steps and Key Ideas}
+\label{tab:final_summary}
+\vspace{0.3cm}
+\begin{tabularx}{\textwidth}{c X}
+\toprule
+\textbf{Step} & \textbf{Key Idea} \\
+\midrule
+1 & Official reports come in distinct types --- bulletins, press releases, survey reports, policy briefs, and more --- each serving a different purpose. \\
+\addlinespace
+2 & Choosing the right report type depends on your audience, purpose, and occasion --- press releases should accompany every major data release. \\
+\addlinespace
+3 & Outlining before writing ensures logical structure, complete coverage, and easier collaboration. \\
+\addlinespace
+4 & Every section of a report has a defined job --- and the press release has its own anatomy built for media use. \\
+\addlinespace
+5 & Statistical precision means anchoring every number in time, population, and units --- and distinguishing percentages from percentage points. \\
+\addlinespace
+6 & Quality assurance is a multi-stage process, not a final proofread --- build it into your production schedule. \\
+\addlinespace
+7 & All steps connect into a repeatable workflow --- from blank page to published, official report. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Where to Go From Here}
+
+To refine your professional skillset, consider exploring these specialized administrative tracts:
+
+\begin{enumerate}
+    \item \textbf{Report Writing for International Standards} --- Explore UN Statistics Division guidelines, IMF Data Standards (SDDS), and how they shape NSO Nepal's publication norms.
+    \item \textbf{Data Visualisation for Official Reports} --- Learn how to design tables, charts, and infographics that meet accessibility and publication standards.
+    \item \textbf{Plain Language Writing for Statistics} --- A deeper skill specifically focused on making statistical findings understandable to non-technical audiences.
+\end{enumerate}
+
+\vspace{2cm}
+\begin{center}
+    \color{gray}
+    \small
+    \rule{6cm}{0.5pt}\\
+    \vspace{0.2cm}
+    \textbf{National Statistics Office (NSO) Nepal}\\
+    Topic: Planning and Structuring of Official Report Writing\\
+    Depth level: Standard\\
+    Date: June 2026
+\end{center}
+
+\end{document}

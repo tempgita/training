@@ -1,0 +1,1286 @@
+\documentclass[xcolor={table,dvipsnames},aspectratio=169,11pt]{beamer}
+
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\usepackage{fontspec}
+\usepackage[english, bidi=basic, provide=*]{babel}
+
+\babelprovide[import, onchar=ids fonts]{english}
+
+% Set default/Latin font to Sans Serif in the main (rm) and sans (sf) slots
+\babelfont{rm}{Noto Sans}
+\babelfont{sf}{Noto Sans}
+\setsansfont{Noto Sans}
+
+% --- SMART PACKAGES ---
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning}
+
+% --- COLOR PALETTE DEFINITIONS ---
+\definecolor{nsoBlue}{HTML}{003366}
+\definecolor{nsoGold}{HTML}{B48C28}
+\definecolor{nsoDark}{HTML}{1A2742}
+\definecolor{nsoLight}{HTML}{EDF4FC}
+\definecolor{nsoMid}{HTML}{6490BE}
+\definecolor{warnBg}{HTML}{FFF8E6}
+\definecolor{badBg}{HTML}{FFF0F0}
+\definecolor{badBorder}{HTML}{CC3333}
+\definecolor{goodBg}{HTML}{F0FFF4}
+\definecolor{goodBorder}{HTML}{1A7A40}
+
+% --- BEAMER STYLE CONFIGURATION ---
+\usetheme{default}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{} % Hide navigation icons
+
+% Color mappings
+\setbeamercolor{frametitle}{fg=nsoBlue}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamercolor{normal text}{fg=nsoDark}
+\setbeamercolor{structure}{fg=nsoBlue}
+
+% Itemize template customization
+\setbeamertemplate{itemize item}{\color{nsoGold}$\bullet$}
+\setbeamertemplate{itemize subitem}{\color{nsoMid}$\circ$}
+
+% Custom Frametitle with gold bottom rule
+\setbeamertemplate{frametitle}{
+    \vspace{0.4cm}
+    \begin{minipage}{\textwidth}
+        {\usebeamerfont{frametitle}\textcolor{nsoBlue}{\insertframetitle}}
+        \vskip 4pt
+        {\color{nsoGold}\hrule height 1.5pt}
+    \end{minipage}
+}
+
+% Custom Footline (excludes title slide)
+\setbeamertemplate{footline}{
+    \ifnum\insertframenumber>1
+    \begin{beamercolorbox}[wd=\paperwidth,dp=1ex,leftskip=0.8cm,rightskip=0.8cm]{footline}
+        \color{nsoMid}\tiny NSO Nepal \hfill \insertframenumber{} / \inserttotalframenumber
+    \end{beamercolorbox}
+    \vspace{0.2cm}
+    \fi
+}
+
+% --- CUSTOM BOXES AND BLOCKS ---
+% Takeaway Box
+\newtcolorbox{takeawaybox}{
+    colback=nsoLight,
+    colframe=nsoBlue,
+    arc=4pt,
+    boxrule=1pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+% Warning Box
+\newtcolorbox{warnbox}{
+    colback=warnBg,
+    colframe=nsoGold,
+    arc=4pt,
+    boxrule=1pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+% Good Practice Box
+\newtcolorbox{goodbox}{
+    colback=goodBg,
+    colframe=goodBorder,
+    arc=0pt,
+    boxrule=0pt,
+    leftrule=3.5pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+% Bad Practice Box
+\newtcolorbox{badbox}{
+    colback=badBg,
+    colframe=badBorder,
+    arc=0pt,
+    boxrule=0pt,
+    leftrule=3.5pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+% Blockquote Box
+\newtcolorbox{blockquote}{
+    colback=nsoLight,
+    colframe=nsoBlue,
+    arc=0pt,
+    boxrule=0pt,
+    leftrule=4pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+% Step Badge Macro
+\newcommand{\stepbadge}[1]{%
+    \begin{tcolorbox}[colback=nsoGold,colframe=nsoGold,arc=8pt,auto outer arc,
+        halign=center,valign=center,width=2.5cm,boxrule=0pt,top=2pt,bottom=2pt,left=2pt,right=2pt]
+        \color{white}\tiny\bfseries #1
+    \end{tcolorbox}%
+}
+
+% Inline Chip Macro
+\newtcbox{\chip}[1][nsoBlue]{
+    on line,
+    arc=4pt,
+    colback=#1,
+    colframe=#1,
+    boxrule=0pt,
+    top=1.5pt,bottom=1.5pt,left=4pt,right=4pt,
+    coltext=white,
+    fontupper=\tiny\bfseries
+}
+
+\renewcommand{\arraystretch}{1.1}
+
+\begin{document}
+
+% ==========================================
+% COVER SLIDE
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{0.8cm}
+    \textcolor{nsoGold}{\rule{3cm}{4pt}}
+    \vskip 0.4cm
+    {\color{white}\huge\bfseries Planning and Structuring of\\Official Report Writing}
+    \vskip 0.2cm
+    {\color{nsoLight}\Large A Learning Guide for NSO Nepal Staff}
+    \vskip 0.4cm
+    \textcolor{nsoGold}{\rule{3cm}{4pt}}
+    \vskip 0.4cm
+    {\color{white}\bfseries National Statistics Office (NSO) Nepal} \\
+    {\color{nsoLight}\small Government of Nepal}
+    \vskip 0.8cm
+    {\color{nsoMid}\tiny 7 Steps · Standard Depth · June 2025 · For Internal Distribution}
+\end{frame}
+}
+
+% ==========================================
+% AGENDA SLIDE
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoLight}
+\begin{frame}{Agenda}
+    \rowcolors{2}{white}{nsoLight!50}
+    \centering
+    \small
+    \begin{tabular}{cl}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Step & \color{white}\bfseries Topic \\
+    \midrule
+    \textbf{1} & The Landscape of Official Reports \\
+    \textbf{2} & Choosing the Right Report for the Right Situation \\
+    \textbf{3} & Structuring the Outline \\
+    \textbf{4} & What to Include in Each Section \\
+    \textbf{5} & Writing with Statistical Precision \\
+    \textbf{6} & Review, Quality Assurance \& Finalization \\
+    \textbf{7} & Synthesis: From Blank Page to Published Report \\
+    $\cdot$ & Summary \& Next Steps \\
+    \bottomrule
+    \end{tabular}
+\end{frame}
+}
+
+% ==========================================
+% STEP 1 HEADER
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{1.5cm}
+    \stepbadge{Step 1 of 7}
+    \vskip 0.4cm
+    {\color{white}\LARGE\bfseries The Landscape of Official Reports}
+    \vskip 0.4cm
+    {\color{nsoLight}\large Understanding the types of official and statistical reports, their purposes, and how they differ from general writing.}
+    \vskip 0.8cm
+    \textcolor{nsoGold}{\rule{3cm}{3pt}}
+\end{frame}
+}
+
+% ==========================================
+% WHAT IS AN OFFICIAL REPORT?
+% ==========================================
+\begin{frame}{What Is an ``Official Report''?}
+    An official report is a \textbf{structured, purposeful document} that communicates factual information to a defined audience. Unlike general writing, official reports must be:
+    \vskip 0.2cm
+    \rowcolors{2}{nsoLight}{white}
+    \footnotesize
+    \begin{tabular}{lp{10cm}}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Property & \color{white}\bfseries Meaning \\
+    \midrule
+    \textbf{Accurate} & Numbers and facts are verified \\
+    \textbf{Objective} & Free from personal opinion \\
+    \textbf{Neutral in tone} & Descriptive, not persuasive \\
+    \textbf{Traceable} & Claims backed by data or citations \\
+    \bottomrule
+    \end{tabular}
+    \vskip 0.2cm
+    \begin{blockquote}
+    \footnotesize For NSO Nepal, reports are the primary channel for sharing national statistics with government, media, researchers, and international partners.
+    \end{blockquote}
+\end{frame}
+
+% ==========================================
+% 8 TYPES OF REPORTS
+% ==========================================
+\begin{frame}{8 Types of Official and Statistical Reports}
+    \rowcolors{2}{nsoLight}{white}
+    \tiny
+    \begin{tabular}{ll>{\raggedright}p{5.5cm}>{\raggedright\arraybackslash}p{4cm}}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries \# & \color{white}\bfseries Report Type & \color{white}\bfseries Core Purpose & \color{white}\bfseries Primary Audience \\
+    \midrule
+    1 & Statistical Bulletin & Publish key indicators (CPI, GDP) & Government, media, public \\
+    2 & Press Release & Announce findings quickly \& accessibly & Media, general public \\
+    3 & Statistical Abstract & Comprehensive data across sectors & Researchers, planners \\
+    4 & Analytical / Thematic Report & In-depth topic analysis & Policymakers, donors \\
+    5 & Census / Survey Report & Full methodology \& findings & All stakeholders \\
+    6 & Administrative Report & Progress updates, minutes & NSO management \\
+    7 & Technical / Methodology Report & How data was collected \& processed & Statisticians \\
+    8 & Policy Brief & Action-oriented summary & Ministers, officials \\
+    \bottomrule
+    \end{tabular}
+\end{frame}
+
+% ==========================================
+% KEY REPORT TYPES AT A GLANCE
+% ==========================================
+\begin{frame}{Key Report Types --- At a Glance}
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \small
+            \textbf{Statistical Bulletin} \\
+            Fixed-schedule publication (monthly, quarterly, annually). Numbers, tables, brief commentary. \\
+            \textit{Example: Nepal CPI --- Monthly Bulletin}
+            \vskip 0.2cm
+            \textbf{Press Release} \\
+            1--2 page announcement for journalists \& public. Simple, direct, jargon-free. First public-facing document alongside any major release.
+            \vskip 0.2cm
+            \textbf{Census / Survey Report} \\
+            Most comprehensive type. Covers background, methodology, findings, annexes. \\
+            \textit{Example: NPHC 2078 --- National Report}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \small
+            \textbf{Analytical / Thematic Report} \\
+            Explains \emph{what the numbers mean}. Includes context, comparisons, sometimes recommendations.
+            \vskip 0.2cm
+            \textbf{Policy Brief} \\
+            2--4 pages. Explicitly recommends action. A Minister should be able to read it in \textbf{5 minutes}.
+            \vskip 0.2cm
+            \textbf{Technical / Methodology Report} \\
+            For statisticians and peer institutions. Explains sampling design, processing steps, caveats.
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% WHY DOES THE DISTINCTION MATTER?
+% ==========================================
+\begin{frame}{Why Does the Distinction Matter?}
+    Each report type has \textbf{different rules} for:
+    \begin{itemize}
+        \item \textbf{Length} --- from 1 page (press release) to 300+ pages (census report)
+        \item \textbf{Tone} --- technical vs. plain language
+        \item \textbf{Structure} --- free-form vs. fixed template
+        \item \textbf{Audience} --- statisticians vs. journalists vs. ministers
+    \end{itemize}
+    \begin{warnbox}
+    \scriptsize \textbf{Common mistakes:} Writing a press release that reads like a methodology report, or burying a policy brief's recommendation on page 10. Choosing the wrong report type wastes time and reduces impact.
+    \end{warnbox}
+    \begin{takeawaybox}
+    \scriptsize \textbf{Key Takeaway:} The first decision in any writing task is --- \emph{What kind of report is this, and who is it for?}
+    \end{takeawaybox}
+\end{frame}
+
+% ==========================================
+% STEP 2 HEADER
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{1.5cm}
+    \stepbadge{Step 2 of 7}
+    \vskip 0.4cm
+    {\color{white}\LARGE\bfseries Choosing the Right Report for the Right Situation}
+    \vskip 0.4cm
+    {\color{nsoLight}\large How to decide which report type to write based on audience, purpose, and occasion.}
+    \vskip 0.8cm
+    \textcolor{nsoGold}{\rule{3cm}{3pt}}
+\end{frame}
+}
+
+% ==========================================
+% ASK THREE QUESTIONS FIRST
+% ==========================================
+\begin{frame}{Ask Three Questions First}
+    Before writing a single word, answer these:
+    \vskip 0.4cm
+    \begin{blockquote}
+        \textbf{1. Who is my audience?} \\
+        \small Journalists? Ministers? Statisticians? The general public?
+    \end{blockquote}
+    \begin{blockquote}
+        \textbf{2. What do I want from them?} \\
+        \small To report the news? To make a policy decision? To replicate our methodology?
+    \end{blockquote}
+    \begin{blockquote}
+        \textbf{3. What is the urgency and occasion?} \\
+        \small Scheduled release? One-time survey result? Emergency announcement?
+    \end{blockquote}
+    \vskip 0.2cm
+    Your answers point directly to the right report type.
+\end{frame}
+
+% ==========================================
+% DECISION GUIDE
+% ==========================================
+\begin{frame}{Decision Guide: When to Write What}
+    \rowcolors{2}{nsoLight}{white}
+    \footnotesize
+    \begin{tabular}{l>{\raggedright\arraybackslash}p{6.5cm}}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Situation & \color{white}\bfseries Best Report Type \\
+    \midrule
+    Monthly/quarterly data ready (CPI, trade, employment) & \textbf{Statistical Bulletin} \\
+    Publishing a bulletin and want media coverage & \textbf{Press Release} \textit{(alongside bulletin)} \\
+    Minister needs a 5-minute read before a meeting & \textbf{Policy Brief} \\
+    Completed a national census or survey & \textbf{Census / Survey Report} \\
+    Analysing trends across multiple indicators over time & \textbf{Analytical / Thematic Report} \\
+    Peer institution asks how you collected your data & \textbf{Technical / Methodology Report} \\
+    Briefing your director on project progress & \textbf{Administrative / Internal Report} \\
+    International donor wants a country data summary & \textbf{Statistical Abstract / Compendium} \\
+    \bottomrule
+    \end{tabular}
+\end{frame}
+
+% ==========================================
+% THE PRESS RELEASE
+% ==========================================
+\begin{frame}{The Press Release --- When and Why}
+    \bullet A press release should be issued \textbf{every time} NSO Nepal publishes data with public significance.
+    \vskip 0.2cm
+    \textbf{What it must do:}
+    \begin{itemize}
+        \item Released \textbf{simultaneously} with the main statistical publication.
+        \item Sent \textbf{directly} to journalists, news portals, social media teams.
+        \item Contain \textbf{one or two headline numbers} --- not the full dataset.
+        \item Written so a journalist can reproduce the story almost word for word.
+    \end{itemize}
+    \vskip 0.2cm
+    \begin{warnbox}
+    \footnotesize \textbf{Common Mistake:} Issuing a press release \emph{days after} the bulletin, when journalists have already sourced data elsewhere --- often incorrectly. \textbf{Timing is everything.}
+    \end{warnbox}
+\end{frame}
+
+% ==========================================
+% PRACTICAL EXAMPLE
+% ==========================================
+\begin{frame}{Practical Example: NLFS 2082}
+    One survey $\rightarrow$ five different documents:
+    \vskip 0.2cm
+    \rowcolors{2}{nsoLight}{white}
+    \footnotesize
+    \begin{tabular}{clll}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Order & \color{white}\bfseries Document & \color{white}\bfseries Type & \color{white}\bfseries Audience \\
+    \midrule
+    1 & Sampling \& Field Operations Report & Technical/Methodology & Statisticians (internal first) \\
+    2 & NLFS 2082 Main Report & Survey Report & All stakeholders \\
+    3 & Youth Unemployment --- Thematic Analysis & Analytical Report & Policymakers, donors \\
+    4 & NLFS 2082 Launch Announcement & \textbf{Press Release} & Media, public \\
+    5 & Labour Market Brief for Ministry & Policy Brief & Ministry of Labour \\
+    \bottomrule
+    \end{tabular}
+    \vskip 0.2cm
+    \begin{takeawaybox}
+    \scriptsize \textbf{Key Takeaway:} The report type is determined by \emph{who reads it} and \emph{what they need to do with it.}
+    \end{takeawaybox}
+\end{frame}
+
+% ==========================================
+% STEP 3 HEADER
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{1.5cm}
+    \stepbadge{Step 3 of 7}
+    \vskip 0.4cm
+    {\color{white}\LARGE\bfseries Structuring the Outline}
+    \vskip 0.4cm
+    {\color{nsoLight}\large How to plan a report's skeleton before writing --- and why structure matters for credibility.}
+    \vskip 0.8cm
+    \textcolor{nsoGold}{\rule{3cm}{3pt}}
+\end{frame}
+}
+
+% ==========================================
+% WHY OUTLINING COMES FIRST
+% ==========================================
+\begin{frame}{Why Outlining Comes First}
+    Writing without an outline is like \textbf{building a house without a blueprint}.
+    \vskip 0.2cm
+    \textbf{A solid outline:}
+    \begin{itemize}
+        \item Ensures no critical section is missed.
+        \item Lets multiple authors divide the work clearly.
+        \item Prevents the report from growing in unplanned directions.
+        \item Makes peer review and editing much faster.
+    \end{itemize}
+    \vskip 0.2cm
+    \begin{blockquote}
+    \footnotesize \textbf{Rule:} Always outline \emph{before} you write. The investment pays back tenfold in writing speed and quality.
+    \end{blockquote}
+\end{frame}
+
+% ==========================================
+% THE UNIVERSAL OUTLINE FRAMEWORK
+% ==========================================
+\begin{frame}{The Universal Outline Framework}
+    \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+        \begin{itemize}
+            \item[\textbf{1.}] \textbf{Front Matter}
+            \begin{itemize}
+                \item Title page
+                \item Foreword / Preface
+                \item Table of Contents
+                \item List of Tables \& Figures
+                \item Abbreviations
+            \end{itemize}
+            \vskip 0.1cm
+            \item[\textbf{2.}] \textbf{Introductory Section}
+            \begin{itemize}
+                \item Background / Context
+                \item Objectives
+                \item Scope \& Coverage
+            \end{itemize}
+        \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \begin{itemize}
+            \item[\textbf{3.}] \textbf{Core Content}
+            \begin{itemize}
+                \item Methodology
+                \item Findings / Results
+                \item Analysis / Interpretation
+            \end{itemize}
+            \vskip 0.1cm
+            \item[\textbf{4.}] \textbf{Concluding Section}
+            \begin{itemize}
+                \item Summary / Conclusions
+                \item Recommendations (where applicable)
+            \end{itemize}
+            \vskip 0.1cm
+            \item[\textbf{5.}] \textbf{Back Matter}
+            \begin{itemize}
+                \item References
+                \item Annexes / Appendices
+                \item Glossary
+            \end{itemize}
+        \end{itemize}
+    \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% OUTLINES BY REPORT TYPE
+% ==========================================
+\begin{frame}{Outlines by Report Type}
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=Statistical Bulletin, coltitle=white, boxrule=1pt, arc=3pt, fonttitle=\scriptsize\bfseries, fontupper=\scriptsize]
+                Cover $\rightarrow$ Key Highlights $\rightarrow$ \\
+                Data Tables $\rightarrow$ \\
+                Short Analytical Notes $\rightarrow$ \\
+                Methodology Note $\rightarrow$ Contact
+            \end{tcolorbox}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=Press Release, coltitle=white, boxrule=1pt, arc=3pt, fonttitle=\scriptsize\bfseries, fontupper=\scriptsize]
+                Headline $\rightarrow$ Dateline $\rightarrow$ \\
+                Opening paragraph (the news) $\rightarrow$ \\
+                Key findings (2--3 paragraphs) $\rightarrow$ \\
+                Context $\rightarrow$ NSO Chief Quote $\rightarrow$ \\
+                Boilerplate $\rightarrow$ Contact
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=Analytical Report, coltitle=white, boxrule=1pt, arc=3pt, fonttitle=\scriptsize\bfseries, fontupper=\scriptsize]
+                Cover $\rightarrow$ Foreword $\rightarrow$ \\
+                Executive Summary $\rightarrow$ \\
+                Introduction $\rightarrow$ \\
+                Data Sources \& Methods $\rightarrow$ \\
+                Thematic Findings $\rightarrow$ \\
+                Conclusions \& Recommendations $\rightarrow$ \\
+                References $\rightarrow$ Annexes
+            \end{tcolorbox}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=Policy Brief, coltitle=white, boxrule=1pt, arc=3pt, fonttitle=\scriptsize\bfseries, fontupper=\scriptsize]
+                Title $\rightarrow$ Key Message $\rightarrow$ \\
+                Background $\rightarrow$ \\
+                Evidence (2--3 findings) $\rightarrow$ \\
+                Policy Options $\rightarrow$ \\
+                Recommended Action $\rightarrow$ \\
+                Further Reading
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% BUILDING YOUR OUTLINE
+% ==========================================
+\begin{frame}{Building Your Outline --- 5 Steps}
+    \begin{enumerate}
+        \item \textbf{Start with purpose} --- Write one sentence: \\ \textit{``This report will help [audience] understand/decide [X].''}
+        \item \textbf{List the questions your reader will have} --- your sections should answer each one.
+        \item \textbf{Group related questions} into logical chapters or sections.
+        \item \textbf{Order them} --- general to specific, or context $\rightarrow$ findings $\rightarrow$ recommendations.
+        \item \textbf{Assign approximate length} --- so you know where the weight falls.
+    \end{enumerate}
+    \vskip 0.2cm
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{takeawaybox}
+            \scriptsize \textbf{NSO Nepal Tip:} For census/survey reports, check UNFPA, UNICEF, or UN Statistics Division templates first.
+            \end{takeawaybox}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{takeawaybox}
+            \scriptsize \textbf{Key Takeaway:} An outline is not a table of contents --- it is a \emph{thinking tool.}
+            \end{takeawaybox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% STEP 4 HEADER
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{1.5cm}
+    \stepbadge{Step 4 of 7}
+    \vskip 0.4cm
+    {\color{white}\LARGE\bfseries What to Include in Each Section}
+    \vskip 0.4cm
+    {\color{nsoLight}\large The anatomy of a well-written official report --- section by section.}
+    \vskip 0.8cm
+    \textcolor{nsoGold}{\rule{3cm}{3pt}}
+\end{frame}
+}
+
+% ==========================================
+% FRONT MATTER SECTIONS
+% ==========================================
+\begin{frame}{Front Matter Sections}
+    \rowcolors{2}{nsoLight}{white}
+    \footnotesize
+    \begin{tabular}{lp{10cm}}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Section & \color{white}\bfseries What to Include \\
+    \midrule
+    \textbf{Title Page} & Report title, subtitle, NSO Nepal, date/period, edition, GoN emblem \\
+    \textbf{Foreword / Preface} & Importance of the report, thanks to contributors, \textbf{no findings} (1--2 paragraphs) \\
+    \textbf{Executive Summary} & Stand-alone summary; purpose + key findings + recommendations; \textbf{written last}; 1--2 pages \\
+    \textbf{Table of Contents} & Auto-generated; must match actual section headings and page numbers \\
+    \textbf{Abbreviations} & All acronyms defined in one place \\
+    \bottomrule
+    \end{tabular}
+    \vskip 0.2cm
+    \begin{takeawaybox}
+    \footnotesize \textbf{Important:} The \textbf{Executive Summary} is the most-read section of any long report. A reader who reads \emph{only this} must understand the report's main message.
+    \end{takeawaybox}
+\end{frame}
+
+% ==========================================
+% CORE CONTENT SECTIONS
+% ==========================================
+\begin{frame}{Core Content Sections}
+    \small
+    \textbf{Introduction / Background} answers:
+    \begin{itemize}
+        \item Why was this report written?
+        \item What time period, geography, and population does it cover?
+        \item How does it connect to previous reports in the series?
+    \end{itemize}
+    \vskip 0.15cm
+    \textbf{Methodology / Data Sources} must include:
+    \begin{itemize}
+        \item Data source(s): survey, census, administrative records, satellite data.
+        \item Sample design: sampling frame, sample size, stratification.
+        \item Data collection period and methods.
+        \item Processing steps: editing, imputation, weighting.
+        \item \textbf{Key limitations and caveats}.
+    \end{itemize}
+    \vskip 0.15cm
+    \textbf{Findings / Results} --- structured by thematic chapters or indicator sections. Each finding needs: \textbf{the number $\rightarrow$ comparison $\rightarrow$ interpretation $\rightarrow$ supporting table/chart}.
+\end{frame}
+
+% ==========================================
+% ANALYTICAL AND CLOSING SECTIONS
+% ==========================================
+\begin{frame}{Analytical and Closing Sections}
+    \small
+    \textbf{Analysis / Discussion} \\
+    Goes beyond numbers to explain them objectively:
+    \begin{itemize}
+        \item What patterns emerge?
+        \item Are there regional, gender, or income-level differences?
+        \item How does this compare to other countries or previous surveys?
+    \end{itemize}
+    \vskip 0.15cm
+    \textbf{Conclusions and Recommendations}
+    \begin{itemize}
+        \item \textbf{Conclusions} = what the data \emph{shows}.
+        \item \textbf{Recommendations} = what should be \emph{done} \textit{(only when the brief calls for it)}.
+    \end{itemize}
+    \vskip 0.15cm
+    \textbf{Annexes} \\
+    House technical material that would slow down the main text: \\
+    \small full data tables · survey questionnaires · sampling frame details · definitions \& classifications.
+\end{frame}
+
+% ==========================================
+% THE PRESS RELEASE SECTION BY SECTION
+% ==========================================
+\begin{frame}[fragile]{The Press Release --- Section by Section}
+    \begin{tcolorbox}[colback=white, colframe=nsoBlue, arc=4pt, title=Press Release Structure, coltitle=white, boxrule=1pt]
+    \tiny
+    \texttt{\textbf{[NSO NEPAL LOGO / LETTERHEAD]}} \\
+    \texttt{\textbf{FOR IMMEDIATE RELEASE} \hfill Date: Baisakh 15, 2082 / 28 April 2025} \\[3pt]
+    \texttt{\textbf{HEADLINE: Nepal's Inflation Rises to 6.2\% in Baisakh 2082}} \\
+    \textit{\scriptsize (One sentence · factual · newsworthy)} \\[3pt]
+    \texttt{KATHMANDU — [Opening paragraph: single most important fact in plain language. What, when, how much?]} \\[2pt]
+    \texttt{[Body paragraph 1: Second most important finding + comparison to prior period]} \\[2pt]
+    \texttt{[Body paragraph 2: Context — what is driving the change?]} \\[2pt]
+    \texttt{``Quote,'' said [Name], Chief Statistician, NSO Nepal. \hfill Contact: [Name · Title · Email · Phone]} \\[2pt]
+    \hfill \texttt{\textbf{\#\#\#}}
+    \end{tcolorbox}
+\end{frame}
+
+% ==========================================
+% THE GOLDEN RULE OF PRESS RELEASES
+% ==========================================
+\begin{frame}{The Golden Rule of Press Releases}
+    \begin{columns}[c]
+        \begin{column}{0.5\textwidth}
+            \small
+            \textbf{Inverted Pyramid Structure} \\
+            Most important $\rightarrow$ least important, top to bottom.
+            \vskip 0.2cm
+            Journalists cut from the \textbf{bottom}. If trimmed, the headline + opening paragraph must still tell the complete story.
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \begin{tikzpicture}[scale=0.8, every node/.style={transform shape}]
+                % Trapezoid 1 (Headline)
+                \draw[fill=nsoBlue, draw=none] (0,3) -- (6,3) -- (5.5,2.2) -- (0.5,2.2) -- cycle;
+                \node[white] at (3,2.6) {\scriptsize\bfseries HEADLINE NUMBER / FACT};
+                \node[right, nsoDark] at (6,2.6) {\tiny $\leftarrow$ Most important};
+                
+                % Trapezoid 2 (Second key)
+                \draw[fill=nsoBlue!80!nsoGold, draw=none] (0.5,2.1) -- (5.5,2.1) -- (5.0,1.4) -- (1.0,1.4) -- cycle;
+                \node[white] at (3,1.75) {\scriptsize\bfseries Second key finding};
+                
+                % Trapezoid 3 (Context)
+                \draw[fill=nsoBlue!60!nsoGold, draw=none] (1.0,1.3) -- (5.0,1.3) -- (4.5,0.7) -- (1.5,0.7) -- cycle;
+                \node[white] at (3,1.0) {\scriptsize Context / background};
+                
+                % Trapezoid 4 (Quote)
+                \draw[fill=nsoMid, draw=none] (1.5,0.6) -- (4.5,0.6) -- (4.0,0.1) -- (2.0,0.1) -- cycle;
+                \node[white] at (3,0.35) {\scriptsize NSO Chief Quote};
+                
+                % Trapezoid 5 (Boilerplate)
+                \draw[fill=nsoLight, draw=nsoBlue, line width=0.5pt] (2.0,0.0) -- (4.0,0.0) -- (3.7,-0.5) -- (2.3,-0.5) -- cycle;
+                \node[nsoDark] at (3,-0.25) {\scriptsize\bfseries Boilerplate};
+                \node[right, nsoDark] at (4,-0.25) {\tiny $\leftarrow$ Least important};
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% STEP 5 HEADER
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{1.5cm}
+    \stepbadge{Step 5 of 7}
+    \vskip 0.4cm
+    {\color{white}\LARGE\bfseries Writing with Statistical Precision}
+    \vskip 0.4cm
+    {\color{nsoLight}\large How to present numbers, analysis, and language accurately and accessibly.}
+    \vskip 0.8cm
+    \textcolor{nsoGold}{\rule{3cm}{3pt}}
+\end{frame}
+}
+
+% ==========================================
+% PRINCIPLE 1 - LET THE NUMBER LEAD
+% ==========================================
+\begin{frame}{Principle 1 --- Let the Number Lead}
+    Always give the actual number first. Never lead with vague adjectives.
+    \vskip 0.2cm
+    \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+        \begin{badbox}
+        \footnotesize\textit{``There has been a \textbf{significant} upward trend in price levels.''}
+        \end{badbox}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \begin{goodbox}
+        \footnotesize\textit{``Consumer prices rose by \textbf{6.2\%} year-on-year in Baisakh 2082, up from \textbf{5.8\%} in Chaitra 2081.''}
+        \end{goodbox}
+    \end{column}
+    \end{columns}
+    \vskip 0.2cm
+    \textbf{Avoid these vague words in statistical writing:}
+    \vskip 0.1cm
+    \rowcolors{2}{nsoLight}{white}
+    \footnotesize
+    \begin{tabular}{ll}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Vague Word & \color{white}\bfseries Replace with... \\
+    \midrule
+    significant & [actual number] \\
+    high / low & [number + context] \\
+    considerable & [number + comparison] \\
+    dramatic change & [before figure] $\rightarrow$ [after figure] \\
+    \bottomrule
+    \end{tabular}
+\end{frame}
+
+% ==========================================
+% PRINCIPLE 2 - BE PRECISE
+% ==========================================
+\begin{frame}{Principle 2 --- Be Precise About What You Measure}
+    Every number must be anchored in \textbf{three dimensions}:
+    \vskip 0.4cm
+    \rowcolors{2}{nsoLight}{white}
+    \small
+    \begin{tabular}{llp{6.5cm}}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Dimension & \color{white}\bfseries Question to answer & \color{white}\bfseries Example \\
+    \midrule
+    \textbf{Indicator} & What exactly is being measured? & Unemployment \emph{rate} (not persons) \\
+    \textbf{Reference period} & When? & Baisakh 2082 (Nepali) = April/May 2025 \\
+    \textbf{Population} & Who is included? & Persons aged 15+, all 77 districts \\
+    \bottomrule
+    \end{tabular}
+\end{frame}
+
+% ==========================================
+% PRINCIPLE 3 - PERCENTAGE VS PP
+% ==========================================
+\begin{frame}{Principle 3 --- Percentage vs. Percentage Points}
+    \textbf{This is the most common error in statistical writing.}
+    \vskip 0.2cm
+    \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+        \textbf{Scenario:} Inflation moves from 5\% to 6\%. \\[6pt]
+        \textbf{Change:}
+        \begin{itemize}
+            \item \textcolor{goodBorder}{\textbf{Correct:}} Rose by \textbf{1 percentage point}
+            \item \textcolor{badBorder}{\textbf{Incorrect:}} Rose by 1\% $\leftarrow$ \textbf{WRONG}
+        \end{itemize}
+        \vskip 0.2cm
+        A 1\% \emph{increase} in a 5\% rate is:
+        $$5\% \times 1.01 = 5.05\% \quad (\text{not } 6\%)$$
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \textbf{Why it matters:} \\[6pt]
+        Getting this wrong causes journalists to misreport your figure by a \textbf{factor of 5}.
+        \vskip 0.3cm
+        \begin{takeawaybox}
+        \footnotesize \textbf{Always say:} \\[2pt]
+        \emph{``rose by X percentage points''} \\[2pt]
+        not \emph{``rose by X percent''} when measuring a change in a rate.
+        \end{takeawaybox}
+    \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% PRINCIPLES 4 & 5 - TABLES & UNCERTAINTY
+% ==========================================
+\begin{frame}{Principles 4 \& 5 --- Tables and Uncertainty}
+    \textbf{Every table and figure must have:}
+    \rowcolors{2}{nsoLight}{white}
+    \footnotesize
+    \begin{tabular}{lp{10cm}}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Element & \color{white}\bfseries Requirement \\
+    \midrule
+    \textbf{Number} & Table 3.1, Figure 2 \\
+    \textbf{Title} & Fully self-describing (no need to read the text) \\
+    \textbf{Unit} & \% · Rs · persons · thousands --- in the header \\
+    \textbf{Source line} & \emph{Source: NSO Nepal, NLFS 2082} \\
+    \textbf{Notes} & Footnotes for exclusions, rounding, caveats \\
+    \bottomrule
+    \end{tabular}
+    \vskip 0.2cm
+    \begin{itemize}
+        \item Keep tables \textbf{in the text near where they are referenced} --- don't hide them in annexes.
+        \item \textbf{Qualify uncertainty honestly} --- margins of error, small sample size warnings, and data quality flags. Transparency is a mark of credibility, not weakness.
+    \end{itemize}
+\end{frame}
+
+% ==========================================
+% PRECISION IN PRESS RELEASES
+% ==========================================
+\begin{frame}{Precision in Press Releases}
+    \rowcolors{2}{nsoLight}{white}
+    \small
+    \begin{tabular}{lp{9cm}}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Rule & \color{white}\bfseries Example \\
+    \midrule
+    \textbf{Round intelligently in headlines} & ``about 1.2 million persons'' not ``1,213,447'' \\
+    \textbf{Give precise figures in the body} & Full number in paragraph 2 or linked table \\
+    \textbf{Anchor comparisons} & ``fell from 25.2\% in 2010/11 to 17.4\% in 2022/23'' \\
+    \textbf{Define technical terms} & ``labour force participation rate \textit{(the share of working-age population employed or actively seeking work)}'' \\
+    \bottomrule
+    \end{tabular}
+    \vskip 0.2cm
+    \begin{takeawaybox}
+    \scriptsize \textbf{Key Takeaway:} Precision is not about complexity --- it is about \emph{exactness}. Numbers must be anchored in time, population, and units. Vague statistical writing erodes public trust.
+    \end{takeawaybox}
+\end{frame}
+
+% ==========================================
+% STEP 6 HEADER
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{1.5cm}
+    \stepbadge{Step 6 of 7}
+    \vskip 0.4cm
+    {\color{white}\LARGE\bfseries Review, Quality Assurance, and Finalization}
+    \vskip 0.4cm
+    {\color{nsoLight}\large Building a multi-stage QA process that protects NSO Nepal's institutional credibility.}
+    \vskip 0.8cm
+    \textcolor{nsoGold}{\rule{3cm}{3pt}}
+\end{frame}
+}
+
+% ==========================================
+% WHY QA IS NON-NEGOTABLE
+% ==========================================
+\begin{frame}{Why QA Is Non-Negotiable}
+    \begin{blockquote}
+    A statistical report published with \textbf{one error} --- a wrong number, a mislabelled table, an inconsistency between text and chart --- damages the credibility of the institution, not just the author.
+    \end{blockquote}
+    \vskip 0.2cm
+    For NSO Nepal --- \textbf{custodian of Nepal's official statistics} --- every report represents the office's reputation.
+    \vskip 0.2cm
+    \textbf{Types of errors to catch:}
+    \begin{itemize}
+        \item Numerical mismatch between text and tables.
+        \item Wrong percentage/percentage point distinction.
+        \item Inconsistent time period labelling.
+        \item Mislabelled tables or figures.
+        \item Executive summary inconsistent with findings.
+    \end{itemize}
+\end{frame}
+
+% ==========================================
+% QA CHECKLIST 1
+% ==========================================
+\begin{frame}{QA Checklist --- Factual \& Consistency}
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \textbf{Factual / Data Accuracy}
+            \begin{itemize}
+                \item[$\square$] All numbers in text match numbers in tables.
+                \item[$\square$] Comparisons to previous periods are correct.
+                \item[$\square$] Totals and sub-totals cross-checked.
+                \item[$\square$] Percentage change calculations verified.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \textbf{Consistency}
+            \begin{itemize}
+                \item[$\square$] Same number written the same way throughout.
+                \item[$\square$] Table and figure numbers sequential \& correctly referenced.
+                \item[$\square$] Time periods described consistently.
+            \end{itemize}
+            \vskip 0.2cm
+            \textbf{Language and Clarity}
+            \begin{itemize}
+                \item[$\square$] Executive summary matches findings.
+                \item[$\square$] All jargon defined on first use.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% QA CHECKLIST 2
+% ==========================================
+\begin{frame}{QA Checklist --- Formatting \& Press Release}
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \textbf{Formatting and Style}
+            \begin{itemize}
+                \item[$\square$] NSO Nepal house style applied (fonts, logos, page numbering).
+                \item[$\square$] All tables/figures properly titled and sourced.
+                \item[$\square$] Table of Contents is up to date.
+                \item[$\square$] PDF named correctly \\ (e.g., \textit{NSO\_CPI\_Baisakh2082\_Final.pdf}).
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \textbf{Press Release --- Specific Checks}
+            \begin{itemize}
+                \item[$\square$] Headline accurately reflects the most important number.
+                \item[$\square$] Dated and marked ``For Immediate Release''.
+                \item[$\square$] Contact details included.
+                \item[$\square$] Quote reviewed and approved by the senior official.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% THE REVIEW WORKFLOW
+% ==========================================
+\begin{frame}{The Review Workflow}
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.3cm and 0.5cm,
+        wf/.style={rectangle, draw=nsoBlue, fill=nsoLight, text=nsoBlue, font=\scriptsize\bfseries, minimum width=3.2cm, minimum height=0.6cm, align=center, rounded corners=3pt}
+    ]
+        \node[wf] (a) {Author};
+        \node[wf, right=of a] (p) {Subject-matter Peer Review \\ \tiny (checks facts, analysis)};
+        \node[wf, right=of p] (t) {Technical Review \\ \tiny (checks methods, tables)};
+        \node[wf, below=of t] (m) {Management Sign-off \\ \tiny (Chief Statistician)};
+        \node[wf, left=of m] (pb) {Publication};
+
+        \draw[->, >=stealth, nsoGold, line width=1pt] (a) -- (p);
+        \draw[->, >=stealth, nsoGold, line width=1pt] (p) -- (t);
+        \draw[->, >=stealth, nsoGold, line width=1pt] (t) -- (m);
+        \draw[->, >=stealth, nsoGold, line width=1pt] (m) -- (pb);
+    \end{tikzpicture}
+    \vskip 0.4cm
+    \begin{itemize}
+        \item \textbf{For major publications} (census, survey reports), also consider:
+        \begin{itemize}
+            \item \textbf{External expert review} --- international consultants, academic peers.
+            \item \textbf{Pre-publication stakeholder consultation} --- relevant ministries.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+% ==========================================
+% FINALIZATION CHECKLIST
+% ==========================================
+\begin{frame}{Finalization Checklist --- Before Publishing}
+    \rowcolors{2}{nsoLight}{white}
+    \small
+    \begin{tabular}{lc}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Item & \color{white}\bfseries Status \\
+    \midrule
+    All data verified against source datasets & [ $\square$ ] \\
+    Final text approved by Chief Statistician & [ $\square$ ] \\
+    Press release prepared and ready to send simultaneously & [ $\square$ ] \\
+    PDF locked and named correctly & [ $\square$ ] \\
+    Report uploaded to NSO Nepal website with correct metadata & [ $\square$ ] \\
+    Press release distributed to media list & [ $\square$ ] \\
+    Social media posts scheduled (if applicable) & [ $\square$ ] \\
+    \bottomrule
+    \end{tabular}
+    \vskip 0.2cm
+    \begin{takeawaybox}
+    \scriptsize \textbf{Key Takeaway:} QA is a process, not a single proofread. Build review stages into your production schedule as planned milestones --- not afterthoughts.
+    \end{takeawaybox}
+\end{frame}
+
+% ==========================================
+% STEP 7 HEADER
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{1.5cm}
+    \stepbadge{Step 7 of 7}
+    \vskip 0.4cm
+    {\color{white}\LARGE\bfseries Synthesis: From Blank Page to Published Report}
+    \vskip 0.4cm
+    {\color{nsoLight}\large Applying all six steps to a real NSO Nepal publication scenario.}
+    \vskip 0.8cm
+    \textcolor{nsoGold}{\rule{3cm}{3pt}}
+\end{frame}
+}
+
+% ==========================================
+% WORKED EXAMPLE CPI
+% ==========================================
+\begin{frame}{Worked Example: CPI Baisakh 2082}
+    \textbf{Situation:} End of Baisakh. Monthly CPI data processing is complete. You manage the publication from start to finish.
+    \vskip 0.3cm
+    \textbf{Stage 1 --- Identify what to produce (Step 2)}
+    \vskip 0.2cm
+    \rowcolors{2}{nsoLight}{white}
+    \footnotesize
+    \begin{tabular}{lll}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Document & \color{white}\bfseries Type & \color{white}\bfseries Audience \\
+    \midrule
+    CPI Monthly Bulletin & Statistical Bulletin & Government, researchers, public \\
+    Press Release & Press Release & Media, general public \\
+    Internal Briefing Note & Administrative Report & Chief Statistician / NPC \\
+    \bottomrule
+    \end{tabular}
+\end{frame}
+
+% ==========================================
+% STAGE 2 OUTLINE
+% ==========================================
+\begin{frame}{Stage 2 --- Build the Outline (Step 3)}
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=CPI Bulletin Outline, coltitle=white, boxrule=1pt]
+                \footnotesize
+                Cover $\rightarrow$ Key Highlights Box $\rightarrow$ \\
+                1. Introduction $\rightarrow$ 2. Overall CPI $\rightarrow$ \\
+                3. Food Inflation $\rightarrow$ 4. Non-Food $\rightarrow$ \\
+                5. Regional Breakdown $\rightarrow$ \\
+                6. Methodology Note $\rightarrow$ Data Tables \\
+                $\rightarrow$ Contact
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=Press Release Outline, coltitle=white, boxrule=1pt]
+                \footnotesize
+                Headline (overall CPI + change) $\rightarrow$ \\
+                Opening paragraph (headline in plain English) $\rightarrow$ Food inflation $\rightarrow$ \\
+                Regional highlight $\rightarrow$ Context $\rightarrow$ \\
+                NSO Chief Quote $\rightarrow$ Boilerplate $\rightarrow$ Contact
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% STAGE 3 WRITE FOR AUDIENCE
+% ==========================================
+\begin{frame}{Stage 3 --- Write for Each Audience (Steps 4 \& 5)}
+    \begin{columns}[t]
+        \begin{column}{0.48\textwidth}
+            \small
+            \textbf{Statistical Bulletin}
+            \begin{itemize}
+                \item Full methodology note.
+                \item Precise tables with source lines.
+                \item Percentage point language throughout.
+                \item Comparison to previous month \& year.
+            \end{itemize}
+            \vskip 0.2cm
+            \textbf{Internal Briefing Note}
+            \begin{itemize}
+                \item Bullet points only.
+                \item 1 page maximum.
+                \item Summary + 2--3 recommendations.
+                \item No methodology detail needed.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \small
+            \textbf{Press Release}
+            \begin{itemize}
+                \item One headline number up top.
+                \item Plain language, no jargon.
+                \item Round headline figures.
+                \item One NSO Chief quote in plain language.
+                \item Methodology in one sentence.
+                \item ``For Immediate Release'' header.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% STAGE 4 REVIEW
+% ==========================================
+\begin{frame}{Stage 4 --- Review \& Publish (Step 6)}
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.4cm,
+        stepbox/.style={rectangle, draw=nsoBlue, fill=nsoLight, text=nsoBlue, font=\scriptsize\bfseries, minimum width=9cm, minimum height=0.5cm, align=center, rounded corners=2pt}
+    ]
+        \node[stepbox] (s1) {Peer reviewer checks all figures match the source data};
+        \node[stepbox, below=of s1] (s2) {Manager reviews press release quote accuracy};
+        \node[stepbox, below=of s2] (s3) {Chief Statistician signs off};
+        \node[stepbox, below=of s3, fill=nsoGold, draw=nsoGold, text=white] (s4) {10:00 AM — Publication Day: Bulletin + Press Release + Web update released simultaneously};
+
+        \draw[->, >=stealth, nsoGold, line width=1pt] (s1) -- (s2);
+        \draw[->, >=stealth, nsoGold, line width=1pt] (s2) -- (s3);
+        \draw[->, >=stealth, nsoGold, line width=1pt] (s3) -- (s4);
+    \end{tikzpicture}
+    \vskip 0.3cm
+    \begin{takeawaybox}
+    \footnotesize \textbf{Note:} Simultaneous release is critical. If the press release goes out before the report is on the website, journalists cannot verify the numbers themselves.
+    \end{takeawaybox}
+\end{frame}
+
+% ==========================================
+% THE MENTAL MODEL
+% ==========================================
+\begin{frame}{The Mental Model --- Always}
+    \begin{columns}[c]
+        \begin{column}{0.48\textwidth}
+            \centering
+            \begin{tikzpicture}[scale=0.8, every node/.style={transform shape},
+                node distance=0.15cm,
+                flowbox/.style={
+                    rectangle,
+                    draw=none,
+                    fill=nsoBlue,
+                    text=white,
+                    font=\scriptsize\bfseries,
+                    text width=4.5cm,
+                    minimum height=0.5cm,
+                    align=center,
+                    rounded corners=3pt
+                },
+                flowboxgold/.style={
+                    flowbox,
+                    fill=nsoGold
+                },
+                arrow/.style={
+                    -{Stealth[scale=0.8]},
+                    nsoGold,
+                    line width=1.2pt
+                }
+            ]
+                \node[flowbox] (p) {Purpose + Audience};
+                \node[flowbox, below=of p] (r) {Report Type};
+                \node[flowbox, below=of r] (o) {Outline};
+                \node[flowbox, below=of o] (s) {Section Content};
+                \node[flowbox, below=of s] (sp) {Statistical Precision};
+                \node[flowbox, below=of sp] (q) {Quality Review};
+                \node[flowboxgold, below=of q] (pb) {Publication};
+                
+                \draw[arrow] (p) -- (r);
+                \draw[arrow] (r) -- (o);
+                \draw[arrow] (o) -- (s);
+                \draw[arrow] (s) -- (sp);
+                \draw[arrow] (sp) -- (q);
+                \draw[arrow] (q) -- (pb);
+            \end{tikzpicture}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \small
+            Every official report --- from a \textbf{2-page press release} to a \textbf{300-page census} --- follows the same logic.
+            \vskip 0.4cm
+            The \textbf{scale} changes. \\
+            The \textbf{thinking} does not.
+            \vskip 0.4cm
+            \begin{blockquote}
+            Master this workflow and you can confidently approach any official report at NSO Nepal.
+            \end{blockquote}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% SUMMARY
+% ==========================================
+\begin{frame}{Summary --- What You Now Know}
+    \rowcolors{2}{nsoLight}{white}
+    \scriptsize
+    \begin{tabular}{cl}
+    \toprule
+    \rowcolor{nsoBlue}\color{white}\bfseries Step & \color{white}\bfseries Key Idea \\
+    \midrule
+    \textbf{1} & Reports differ by type --- identify the right one before writing \\
+    \textbf{2} & Audience + purpose + occasion $\rightarrow$ determines report type; press releases accompany every major release \\
+    \textbf{3} & Outline before you write --- it is a thinking tool, not just a contents page \\
+    \textbf{4} & Every section has a specific job; press releases follow the inverted pyramid \\
+    \textbf{5} & Anchor numbers in time, population, and units; distinguish \% from percentage points \\
+    \textbf{6} & QA is multi-stage --- build it into your production schedule \\
+    \textbf{7} & All steps form a repeatable workflow from blank page to published report \\
+    \bottomrule
+    \end{tabular}
+\end{frame}
+
+% ==========================================
+% WHERE TO GO FROM HERE
+% ==========================================
+\begin{frame}{Where to Go From Here}
+    \begin{columns}[t]
+        \begin{column}{0.31\textwidth}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=1. International Standards, coltitle=white, boxrule=1pt, height=3.8cm]
+                \scriptsize UN Statistics Division guidelines, IMF Data Standards (SDDS), and how they shape NSO Nepal norms.
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.31\textwidth}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=2. Data Visualisation, coltitle=white, boxrule=1pt, height=3.8cm]
+                \scriptsize Designing tables, charts, and infographics that meet accessibility and publication standards.
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.31\textwidth}
+            \begin{tcolorbox}[colback=nsoLight, colframe=nsoBlue, title=3. Plain Language, coltitle=white, boxrule=1pt, height=3.8cm]
+                \scriptsize Making statistical findings understandable and accessible to non-technical audiences.
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% THANK YOU
+% ==========================================
+{
+\setbeamercolor{background canvas}{bg=nsoBlue}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\begin{frame}[plain]
+    \vspace{1.5cm}
+    \textcolor{nsoGold}{\rule{3cm}{4pt}}
+    \vskip 0.4cm
+    {\color{white}\huge\bfseries Thank You}
+    \vskip 0.2cm
+    {\color{nsoLight}\Large National Statistics Office Nepal} \\
+    {\color{nsoMid}\large Government of Nepal}
+    \vskip 0.4cm
+    \textcolor{nsoGold}{\rule{3cm}{4pt}}
+    \vskip 0.4cm
+    \begin{columns}[t]
+    \begin{column}{0.5\textwidth}
+        {\color{white}\scriptsize\bfseries Planning and Structuring of Official Report Writing} \\[2pt]
+        {\color{nsoLight}\tiny A Learning Guide for NSO Nepal Staff}
+    \end{column}
+    \end{columns}
+    \vskip 0.8cm
+    {\color{nsoMid}\tiny June 2026 · For Internal Distribution · NSO Nepal Staff}
+\end{frame}
+}
+
+\end{document}

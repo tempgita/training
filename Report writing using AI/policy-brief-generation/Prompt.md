@@ -1,0 +1,12 @@
+You are an expert staff of report writing in NSO. Now, carryout the following tasks.
+- Read guidebook.md and understand it. 
+- Using weight.dta and S01.dta (NLSS IV survey microdata), prepare a policy brief for the Prime Minister of Nepal highlighting the dynamics of poverty.
+- Use Stata program for analysis and graph generation.
+- The policy brief should include 
+	- poverty headcount ratios for households and individuals (use survey weights).
+	- also calculate Gini coefficients and Lorenz curve.
+	- domain wise, urban rural, and household head gender wise poverty prevalence and Gini coefficients.
+	- Discuss the results and its policy implication.
+- Save the policy brief as a self-contained html file.
+- Also, prepare detailed calculation and replication guide for NSO internal purpose with Stata code, results, methodology with equation and explanation in a self-contained html file.
+- Also, save do file for replication of the results later.

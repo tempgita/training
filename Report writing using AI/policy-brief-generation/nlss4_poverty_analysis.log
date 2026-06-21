@@ -1,0 +1,315 @@
+
+  ___  ____  ____  ____  ____ ®
+ /__    /   ____/   /   ____/      18.0
+___/   /   /___/   /   /___/       MP—Parallel Edition
+
+ Statistics and Data Science       Copyright 1985-2023 StataCorp LLC
+                                   StataCorp
+                                   4905 Lakeway Drive
+                                   College Station, Texas 77845 USA
+                                   800-STATA-PC        https://www.stata.com
+                                   979-696-4600        stata@stata.com
+
+Stata license: Single-user 2-core  perpetual
+Serial number: 501806337221
+  Licensed to: Anil Shrestha
+               NSO
+
+Notes:
+      1. Stata is running in batch mode.
+      2. Unicode is supported; see help unicode_advice.
+      3. More than 2 billion observations are allowed; see help obs_advice.
+      4. Maximum number of variables is set to 5,000 but can be increased;
+          see help set_maxvar.
+
+. do nlss4_poverty_analysis.do 
+
+. version 18.0
+
+. clear all
+
+. set more off
+
+. set linesize 120
+
+. set scheme s2color
+
+. 
+. capture mkdir "output"
+
+. capture mkdir "output/figures"
+
+. capture mkdir "output/results"
+
+. 
+. /*
+>   NLSS IV poverty dynamics: complete replication program
+>   Inputs: poverty.dta (the supplied weight/poverty file) and S01.dta
+>   Unit of analysis: household. Person estimates use hhs_wt * hhsize.
+> */
+. 
+. * Extract the sex of the unique household head.
+. use "S01.dta", clear
+(NLSS04_DICT)
+
+. keep if q01_04 == 1
+(37,270 observations deleted)
+
+. isid psu_number hh_number
+
+. keep psu_number hh_number q01_02
+
+. rename q01_02 head_gender
+
+. label variable head_gender "Sex of household head"
+
+. tempfile heads
+
+. save `heads'
+file C:\Users\ANIL~1.SHR\AppData\Local\Temp\ST_501c_000001.tmp saved as .dta format
+
+. 
+. * Merge head characteristics into the poverty/weight file.
+. use "poverty.dta", clear
+(NLSS04_DICT)
+
+. isid psu_number hh_number
+
+. merge 1:1 psu_number hh_number using `heads', assert(match) nogen
+(variable psu_number was int, now double to accommodate using data's values)
+(variable hh_number was byte, now double to accommodate using data's values)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                             9,600  
+    -----------------------------------------
+
+. assert poor == (pcep < pline)
+
+. assert abs(ind_wt - hhs_wt * hhsize) < .1
+
+. 
+. generate byte urban = inlist(ad_4, 1, 2)
+
+. label define urban_lab 0 "Rural" 1 "Urban"
+
+. label values urban urban_lab
+
+. label variable urban "Urban/rural residence"
+
+. 
+. tempfile analysis
+
+. save `analysis'
+file C:\Users\ANIL~1.SHR\AppData\Local\Temp\ST_501c_000002.tmp saved as .dta format
+
+. 
+. * Weighted Gini from the trapezoidal area under the Lorenz curve.
+. capture program drop weighted_gini
+
+. program define weighted_gini, rclass
+  1.     syntax varname, Wvar(varname)
+  2.     preserve
+  3.         keep `varlist' `wvar'
+  4.         drop if missing(`varlist', `wvar') | `wvar' <= 0
+  5.         sort `varlist'
+  6.         quietly generate double __wx = `wvar' * `varlist'
+  7.         quietly summarize `wvar', meanonly
+  8.         local W = r(sum)
+  9.         quietly summarize __wx, meanonly
+ 10.         local Y = r(sum)
+ 11.         quietly generate double __L = sum(__wx) / `Y'
+ 12.         quietly generate double __L0 = __L[_n-1]
+ 13.         quietly replace __L0 = 0 in 1
+ 14.         quietly generate double __area2 = (__L + __L0) * (`wvar' / `W')
+ 15.         quietly summarize __area2, meanonly
+ 16.         return scalar gini = 1 - r(sum)
+ 17.         return scalar N = _N
+ 18.     restore
+ 19. end
+
+. 
+. tempname results_post
+
+. tempfile results
+
+. postfile `results_post' str24 section str48 group int display_order ///
+>     long sample_households double households persons hc_household hc_individual gini ///
+>     using `results', replace
+(file C:\Users\ANIL~1.SHR\AppData\Local\Temp\ST_501c_000003.tmp not found)
+
+. global NLSS_RESULTS_POST `results_post'
+
+. 
+. capture program drop post_estimate
+
+. program define post_estimate
+  1.     syntax, Section(string) Group(string) Order(integer) Condition(string)
+  2.     preserve
+  3.         quietly keep if `condition'
+  4.         quietly count
+  5.         local n = r(N)
+  6.         quietly summarize hhs_wt, meanonly
+  7.         local households = r(sum)
+  8.         quietly summarize ind_wt, meanonly
+  9.         local persons = r(sum)
+ 10.         quietly summarize poor [aw=hhs_wt], meanonly
+ 11.         local hc_hh = r(mean)
+ 12.         quietly summarize poor [aw=ind_wt], meanonly
+ 13.         local hc_ind = r(mean)
+ 14.         quietly weighted_gini pcep, wvar(ind_wt)
+ 15.         local gini = r(gini)
+ 16.         post $NLSS_RESULTS_POST ("`section'") ("`group'") (`order') (`n') ///
+>             (`households') (`persons') (`hc_hh') (`hc_ind') (`gini')
+ 17.     restore
+ 18. end
+
+. 
+. use `analysis', clear
+(NLSS04_DICT)
+
+. post_estimate, section("National") group("Nepal") order(1) condition("1")
+
+. 
+. foreach u in 1 0 {
+  2.     local ulab : label urban_lab `u'
+  3.     local ord = cond(`u' == 1, 1, 2)
+  4.     post_estimate, section("Urban/rural") group("`ulab'") order(`ord') condition("urban == `u'")
+  5. }
+
+. 
+. foreach g in 1 2 {
+  2.     local glab : label Q01_02_VS1 `g'
+  3.     post_estimate, section("Head gender") group("`glab'") order(`g') condition("head_gender == `g'")
+  4. }
+
+. 
+. levelsof domain, local(domains)
+11 12 21 22 30 31 32 41 42 51 52 61 62 71 72
+
+. local ord = 0
+
+. foreach d of local domains {
+  2.     local ++ord
+  3.     local dlab : label domainlab `d'
+  4.     post_estimate, section("Analytical domain") group("`dlab'") order(`ord') condition("domain == `d'")
+  5. }
+
+. postclose `results_post'
+
+. macro drop NLSS_RESULTS_POST
+
+. 
+. use `results', clear
+
+. sort section display_order
+
+. format households persons %15.0fc
+
+. format hc_household hc_individual gini %9.6f
+
+. export delimited using "output/results/poverty_results.csv", replace
+(file output/results/poverty_results.csv not found)
+file output/results/poverty_results.csv saved
+
+. save "output/results/poverty_results.dta", replace
+(file output/results/poverty_results.dta not found)
+file output/results/poverty_results.dta saved
+
+. 
+. * Chart 1: National person-weighted Lorenz curve.
+. use `analysis', clear
+(NLSS04_DICT)
+
+. sort pcep
+
+. generate double __wx = ind_wt * pcep
+
+. quietly summarize ind_wt, meanonly
+
+. generate double population_share = sum(ind_wt) / r(sum)
+
+. quietly summarize __wx, meanonly
+
+. generate double consumption_share = sum(__wx) / r(sum)
+
+. local newN = _N + 1
+
+. set obs `newN'
+Number of observations (_N) was 9,600, now 9,601.
+
+. replace population_share = 0 in `newN'
+(1 real change made)
+
+. replace consumption_share = 0 in `newN'
+(1 real change made)
+
+. sort population_share
+
+. twoway (line consumption_share population_share, sort lcolor(navy) lwidth(medthick)) ///
+>        (function y=x, range(0 1) lcolor(gs8) lpattern(dash)), ///
+>        title("Lorenz curve of real per-capita consumption") ///
+>        subtitle("Nepal, NLSS IV; person-weighted") ///
+>        xtitle("Cumulative share of persons") ytitle("Cumulative share of consumption") ///
+>        xlabel(0(.2)1, format(%3.1f)) ylabel(0(.2)1, format(%3.1f) angle(horizontal)) ///
+>        legend(order(1 "Lorenz curve" 2 "Line of equality") rows(1)) ///
+>        graphregion(color(white)) plotregion(color(white)) name(lorenz, replace)
+
+. graph export "output/figures/lorenz_curve.svg", replace
+(file output/figures/lorenz_curve.svg not found)
+file output/figures/lorenz_curve.svg saved as SVG format
+
+. export delimited population_share consumption_share using ///
+>     "output/results/lorenz_coordinates.csv", replace
+(file output/results/lorenz_coordinates.csv not found)
+file output/results/lorenz_coordinates.csv saved
+
+. 
+. * Chart 2: Individual poverty headcount by analytical domain.
+. use "output/results/poverty_results.dta", clear
+
+. keep if section == "Analytical domain"
+(5 observations deleted)
+
+. generate double hc_percent = 100 * hc_individual
+
+. graph hbar (asis) hc_percent, over(group, sort(1) descending label(labsize(small))) ///
+>     title("Poverty prevalence varies sharply across Nepal") ///
+>     subtitle("Individual headcount ratio by analytical domain (%)") ///
+>     ytitle("Percent of persons below the poverty line") ///
+>     ylabel(0(5)35, angle(horizontal)) blabel(bar, format(%4.1f) size(vsmall)) ///
+>     bar(1, color(navy)) graphregion(color(white)) plotregion(color(white)) ///
+>     name(domain_poverty, replace)
+
+. graph export "output/figures/domain_poverty.svg", replace
+(file output/figures/domain_poverty.svg not found)
+file output/figures/domain_poverty.svg saved as SVG format
+
+. 
+. * Chart 3: Poverty and inequality by urban/rural residence.
+. use "output/results/poverty_results.dta", clear
+
+. keep if section == "Urban/rural"
+(18 observations deleted)
+
+. generate double hc_percent = 100 * hc_individual
+
+. graph bar (asis) hc_percent, over(group) ///
+>     title("Rural and urban poverty prevalence") ///
+>     subtitle("Individual headcount ratio (%)") ytitle("Percent") ///
+>     ylabel(0(5)30, angle(horizontal)) blabel(bar, format(%4.1f)) ///
+>     bar(1, color(navy)) graphregion(color(white)) plotregion(color(white)) ///
+>     name(urban_poverty, replace)
+
+. graph export "output/figures/urban_rural_poverty.svg", replace
+(file output/figures/urban_rural_poverty.svg not found)
+file output/figures/urban_rural_poverty.svg saved as SVG format
+
+. 
+. display as result "Analysis complete. Results are in output/results and figures in output/figures."
+Analysis complete. Results are in output/results and figures in output/figures.
+
+. exit, clear
+
+end of do-file
