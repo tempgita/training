@@ -1,0 +1,748 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+
+% --- THEME & COLORS ---
+\usetheme{Boadilla}
+\usecolortheme{default}
+
+% Professional corporate color palette
+\definecolor{NavyBlue}{RGB}{20, 40, 80}
+\definecolor{SlateGray}{RGB}{80, 100, 120}
+\definecolor{LightBlue}{RGB}{235, 243, 250}
+\definecolor{AccentGreen}{RGB}{46, 125, 50}
+
+\setbeamercolor{palette primary}{bg=NavyBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=SlateGray,fg=white}
+\setbeamercolor{palette tertiary}{bg=NavyBlue,fg=white}
+\setbeamercolor{palette quaternary}{bg=NavyBlue,fg=white}
+\setbeamercolor{structure}{fg=NavyBlue}
+\setbeamercolor{block title}{bg=NavyBlue,fg=white}
+\setbeamercolor{block body}{bg=LightBlue,fg=black}
+
+% --- FONTS ---
+\usepackage{fontspec}
+\setmainfont{Noto Sans}
+\setsansfont{Noto Sans}
+
+% --- REQUIRED PACKAGES ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage{microtype}
+
+% --- DOCUMENT INFO ---
+\title[Sample Allocation Guidebook]{Sample Allocation and Computer-Assisted Sampling}
+\subtitle{A Technical Guidebook for Excel and Stata Implementation}
+\author[Dr. Anil Shrestha]{Dr. Anil Shrestha}
+\institute[NSO]{National Statistical Training Reference Guide}
+\date[Session Date: 2083-03-10]{Session Date: 2083-03-10 \\ \small Time: 3:30 PM - 5:00 PM}
+
+\begin{document}
+
+% --- TITLE SLIDE ---
+\begin{frame}[plain]
+    \titlepage
+\end{frame}
+
+% --- OUTLINE ---
+\begin{frame}{Session Outline}
+    \tableofcontents
+\end{frame}
+
+% ==========================================
+% SECTION 1: WHY ALLOCATION MATTERS
+% ==========================================
+\section{Why Allocation Matters}
+
+\begin{frame}{Why Allocation Matters: The Problem We Are Solving}
+    \begin{block}{The Core Question}
+        In a stratified sample survey, after segmenting the population into $H$ mutually exclusive strata (e.g., provinces, urban/rural districts), how do we distribute our total sample budget of $n$ units across strata ($n_h$)?
+    \end{block}
+    \vspace{0.3cm}
+    \begin{itemize}
+        \item \textbf{Statistical Precision:} Minimizes standard errors of national estimators.
+        \item \textbf{Budget Efficiency:} Allocates resources strategically depending on field operational costs.
+        \item \textbf{Analytical Validity:} Ensures small sub-groups (domains) are adequately represented.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{The Fallacy of Simple Equal Division}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \textbf{The Naive Approach:}
+            \begin{itemize}
+                \item Dividing $n = 3,000$ equally across Nepal's 7 provinces ($\approx 429$ per province).
+                \item Ignores massive population disparities.
+                \item Results in highly volatile \textbf{sampling fractions} ($f_h$) and unbalanced \textbf{design weights} ($w_h$).
+              \end{itemize}
+          \end{column}
+          \begin{column}{0.5\textwidth}
+              \begin{table}
+                  \caption{Table 1: Nepal Households vs. Equal Allocation}
+                  \tiny
+                  \begin{tabularx}{\textwidth}{lXXX}
+                      \toprule
+                      \textbf{Province} & \textbf{Pop. ($N_h$)} & \textbf{Equal $n_h$} & \textbf{Sampling Fraction} \\
+                      \midrule
+                      Koshi & 720k & 429 & 0.060\% \\
+                      Madhesh & 810k & 429 & 0.053\% \\
+                      Bagmati & 960k & 429 & 0.045\% \\
+                      Gandaki & 360k & 429 & 0.119\% \\
+                      Lumbini & 630k & 429 & 0.068\% \\
+                      Karnali & 180k & 429 & 0.238\% \\
+                      Sudurpashchim & 240k & 429 & 0.179\% \\
+                      \midrule
+                      \textbf{Total} & \textbf{3.9M} & \textbf{3,003} & \textbf{0.077\%} \\
+                      \bottomrule
+                  \end{tabularx}
+              \end{table}
+          \end{column}
+      \end{columns}
+  \end{frame}
+  
+  \begin{frame}{Analytical Variables Controlled by Allocation}
+      An allocation plan directly determines the primary variables used in complex survey analysis:
+      
+      \vspace{0.4cm}
+      \begin{columns}
+          \begin{column}{0.5\textwidth}
+              \begin{block}{1. Sampling Fraction ($f_h$)}
+                  The probability of selecting a unit within stratum $h$:
+                  $$f_h = \frac{n_h}{N_h}$$
+              \end{block}
+          \end{column}
+          \begin{column}{0.5\textwidth}
+              \begin{block}{2. Design Weights ($w_h$)}
+                  The expansion factor used to scale up sample statistics to the population:
+                  $$w_h = \frac{1}{f_h} = \frac{N_h}{n_h}$$
+              \end{block}
+          \end{column}
+      \end{columns}
+      \vspace{0.4cm}
+      \begin{alertblock}{Warning}
+          Extreme variation in design weights drastically inflates the \textbf{Design Effect (DEFF)} and standard errors of national estimators.
+      \end{alertblock}
+  \end{frame}
+  
+  \begin{frame}{The Three Pillars of Stratified Allocation}
+      \begin{columns}
+          \begin{column}{0.45\textwidth}
+              \begin{itemize}
+                  \item \textbf{Population Size ($N_h$):} Larger strata require larger sample sizes to keep sampling fractions balanced.
+                  \item \textbf{Internal Variability ($S_h$):} High internal diversity requires larger samples. Homogeneous strata are cheap to estimate precisely.
+                  \item \textbf{Sampling Unit Cost ($c_h$):} Remote, high-cost sectors should be sampled less when variance targets permit.
+              \end{itemize}
+          \end{column}
+          \begin{column}{0.55\textwidth}
+              \begin{table}
+                  \caption{Table 2: Statistical Vulnerabilities of Poor Sample Allocation}
+                  \tiny
+                  \begin{tabularx}{\textwidth}{lX}
+                      \toprule
+                      \textbf{Design Error} & \textbf{Consequence} \\
+                      \midrule
+                      Oversampling large strata & Wastes budget; suppresses small-domain representation. \\
+                      \midrule
+                      Undersampling small strata & Unstable domain estimates for key administration zones. \\
+                      \midrule
+                      Ignoring variance ($S_h$) & High national aggregate standard errors. \\
+                      \midrule
+                      Ignoring operational cost ($c_h$) & Triggers severe fieldwork budget overruns. \\
+                      \midrule
+                      Absence of sample floors & Stratum $n_h \le 1$ makes variance estimation impossible. \\
+                      \bottomrule
+                  \end{tabularx}
+              \end{table}
+          \end{column}
+      \end{columns}
+  \end{frame}
+  
+  % ==========================================
+  % SECTION 2: CLASSICAL METHODS
+  % ==========================================
+  \section{Classical Allocation Methods}
+  
+  \begin{frame}{The Running Reference Dataset}
+      We will use this dataset representing a national \textbf{Household Income Survey} throughout the guidebook.
+      
+      \begin{itemize}
+          \item Total population ($N$): $1,900,000$ households across $H=5$ strata.
+          \item Total contract sample size ($n$): $1,200$ households.
+      \end{itemize}
+      
+      \begin{table}
+          \caption{Table 3: Baseline Strata Parameters for the Running Reference Dataset}
+          \footnotesize
+          \begin{tabularx}{0.85\textwidth}{clrr}
+              \toprule
+              \textbf{Stratum ($h$)} & \textbf{Geographical Description} & \textbf{Population ($N_h$)} & \textbf{Income Std. Dev. ($S_h$, NPR '000)} \\
+              \midrule
+              1 & Mountain Rural & 80,000 & 12.0 \\
+              2 & Hill Rural & 340,000 & 15.0 \\
+              3 & Hill Urban & 260,000 & 22.0 \\
+              4 & Terai Rural & 780,000 & 18.0 \\
+              5 & Terai Urban & 440,000 & 28.0 \\
+              \midrule
+              \textbf{Total} & & \textbf{1,900,000} & \\
+              \bottomrule
+          \end{tabularx}
+      \end{table}
+  \end{frame}
+  
+  \begin{frame}{Equal vs. Proportional Allocation Methods}
+      \begin{columns}
+          \begin{column}{0.5\textwidth}
+              \begin{block}{Equal Allocation}
+                  Distributes sample size uniformly:
+                  $$n_h = \frac{n}{H}$$
+                  \begin{itemize}
+                      \item In our case: $n_h = 240$ units.
+                      \item \textbf{When to use:} Highly exploratory designs, pilot studies, or when domain comparison is the primary goal.
+                      \item \textbf{Drawback:} Severe weight variations (from $w_1 = 333$ to $w_4 = 3,250$).
+                  \end{itemize}
+              \end{block}
+          \end{column}
+          \begin{column}{0.5\textwidth}
+              \begin{block}{Proportional Allocation}
+                  Based strictly on population share:
+                  $$n_h = n \times \frac{N_h}{N}$$
+                  \begin{itemize}
+                      \item In our case: $n_4 \approx 1,200 \times \frac{780\text{k}}{1.9\text{M}} \approx 493$.
+                      \item \textbf{When to use:} Standard baseline for self-weighting (EPSEM) designs.
+                      \item \textbf{Drawback:} Blind to internal stratum variation ($S_h$) and operational costs ($c_h$).
+                  \end{itemize}
+              \end{block}
+          \end{column}
+      \end{columns}
+  \end{frame}
+  
+  \begin{frame}{Comparison of Equal and Proportional Allocations}
+      \begin{table}
+          \caption{Table 4: Equal vs. Proportional Sample Allocation Comparison}
+          \small
+          \begin{tabularx}{0.85\textwidth}{clrrr}
+              \toprule
+              \textbf{Stratum} & \textbf{Description} & \textbf{Equal $n_h$} & \textbf{Proportional $n_h$} & \textbf{Net Difference} \\
+              \midrule
+              1 & Mountain Rural & 240 & 51 & -189 \\
+              2 & Hill Rural & 240 & 215 & -25 \\
+              3 & Hill Urban & 240 & 164 & -76 \\
+              4 & Terai Rural & 240 & 493 & +253 \\
+              5 & Terai Urban & 240 & 277 & +37 \\
+              \midrule
+              \textbf{Total} & & \textbf{1,200} & \textbf{1,200} & \\
+              \bottomrule
+          \end{tabularx}
+      \end{table}
+      \begin{itemize}
+          \item Under Proportional, Mountain Rural drops to only $51$ households. This is too small for reliable sub-national estimates.
+          \item Under Equal, high-density hubs like Terai Rural are under-sampled ($240$ vs. $493$), causing severe national variance inflation.
+      \end{itemize}
+  \end{frame}
+  
+  % ==========================================
+  % SECTION 3: NEYMAN ALLOCATION
+  % ==========================================
+  \section{Neyman (Optimal) Allocation}
+  
+  \begin{frame}{Neyman (Optimal) Sample Allocation}
+      Developed by Jerzy Neyman (1934), this method incorporates population size and internal variability simultaneously to minimize the variance of the overall population estimator $V(\bar{y}_{st})$ for a fixed total sample size $n$.
+      
+      \begin{block}{The Neyman Formula}
+          $$n_h = n \times \frac{N_h S_h}{\sum_{h=1}^H N_h S_h}$$
+      \end{block}
+      \begin{block}{Efficiency Gain Metrics}
+          $$\text{Efficiency Gain} = \frac{V_{\text{proportional}}(\bar{y}_{st})}{V_{\text{Neyman}}(\bar{y}_{st})}$$
+          An efficiency gain of $1.15$ indicates Neyman achieves the same precision as a proportional sample that is $15\%$ larger!
+      \end{block}
+  \end{frame}
+  
+  \begin{frame}{Neyman Allocation: Step-by-Step Workflow}
+      \textbf{Step 1: Compute Priority Products ($N_h \times S_h$)}
+      \begin{table}
+          \caption{Table 5: Priority Value Calculations for Neyman Optimal Allocation}
+          \tiny
+          \begin{tabularx}{0.85\textwidth}{clrrr}
+              \toprule
+              \textbf{Stratum} & \textbf{Description} & \textbf{Population ($N_h$)} & \textbf{Std. Dev. ($S_h$)} & \textbf{Product ($N_h S_h$)} \\
+              \midrule
+              1 & Mountain Rural & 80,000 & 12.0 & 960,000 \\
+              2 & Hill Rural & 340,000 & 15.0 & 5,100,000 \\
+              3 & Hill Urban & 260,000 & 22.0 & 5,720,000 \\
+              4 & Terai Rural & 780,000 & 18.0 & 14,040,000 \\
+              5 & Terai Urban & 440,000 & 28.0 & 12,320,000 \\
+              \midrule
+              \textbf{Sum} & & & & \textbf{38,140,000} \\
+              \bottomrule
+          \end{tabularx}
+      \end{table}
+      
+      \textbf{Step 2 \& 3: Calculate Ratios, Multiply by $n = 1,200$, and Resolve Rounding}
+      \begin{itemize}
+          \item Stratum 4 Ratio: $\frac{14,040,000}{38,140,000} \approx 0.36809 \implies \text{Raw } n_4 \approx 441.71 \implies \text{Rounded } n_4 = 442$
+          \item Sum of rounded values = $1,201$. We subtract 1 unit from Stratum 2 (rounded from $160.46$ to $161$ with $0.46$ remainder) to restore the budget to exactly $1,200$.
+      \end{itemize}
+  \end{frame}
+  
+  \begin{frame}{Comparison: Equal, Proportional, and Neyman}
+      \begin{table}
+          \caption{Table 6: Comparison of Equal, Proportional, and Neyman Allocations}
+          \footnotesize
+          \begin{tabularx}{\textwidth}{clrrrrr}
+              \toprule
+              \textbf{Stratum} & \textbf{Description} & \textbf{Pop. ($N_h$)} & \textbf{SD ($S_h$)} & \textbf{Equal} & \textbf{Proportional} & \textbf{Neyman} \\
+              \midrule
+              1 & Mountain Rural & 80,000 & 12.0 & 240 & 51 & 30 \\
+              2 & Hill Rural & 340,000 & 15.0 & 240 & 215 & 160 \\
+              3 & Hill Urban & 260,000 & 22.0 & 240 & 164 & 180 \\
+              4 & Terai Rural & 780,000 & 18.0 & 240 & 493 & 442 \\
+              5 & Terai Urban & 440,000 & 28.0 & 240 & 277 & 388 \\
+              \midrule
+              \textbf{Total} & & \textbf{1,900,000} & & \textbf{1,200} & \textbf{1,200} & \textbf{1,200} \\
+              \bottomrule
+          \end{tabularx}
+      \end{table}
+      
+      \textbf{Key Insights into Neyman's Behavior:}
+      \begin{itemize}
+          \item \textbf{Terai Urban ($S_h = 28.0$):} Extremely high internal variance leads to an increased allocation of $388$ (up from proportional's $277$).
+          \item \textbf{Mountain Rural ($S_h = 12.0$):} Very homogeneous; Neyman reduces its sample to just $30$.
+          \item \textbf{Hill Urban vs. Hill Rural:} Hill Urban has smaller population but higher variance ($22.0 > 15.0$), thus receiving a larger sample size ($180 > 160$).
+      \end{itemize}
+  \end{frame}
+  
+  % ==========================================
+  % SECTION 4: ADVANCED METHODS
+  % ==========================================
+  \section{Advanced and Cost-Constrained Methods}
+  
+  \begin{frame}{Power Allocation and Square Root Variant}
+      Proportional allocation leaves small regions with too few samples, whereas equal division compromises national estimates. \textbf{Power Allocation} uses a tuning exponent $q \in [0, 1]$ to control this balance.
+      
+      \begin{block}{Power Allocation Formula}
+          $$n_h = n \times \frac{N_h^q}{\sum_{h=1}^H N_h^q}$$
+      \end{block}
+      
+      \begin{columns}
+          \begin{column}{0.5\textwidth}
+              \textbf{The Dial of the Exponent ($q$):}
+              \begin{itemize}
+                  \item $q = 1.0$: Restores Proportional.
+                  \item $q = 0.0$: Restores Equal.
+                  \item $q = 0.5$: \textbf{Square Root Allocation} (Standard in international surveys).
+              \end{itemize}
+          \end{column}
+          \begin{column}{0.5\textwidth}
+              \begin{table}
+                  \caption{Table 7: Square Root (Power $q=0.5$) Allocation Calculations}
+                  \tiny
+                  \begin{tabularx}{\textwidth}{clrr}
+                      \toprule
+                      \textbf{Stratum} & \textbf{Description} & \textbf{Sqrt $\sqrt{N_h}$} & \textbf{Final $n_h$} \\
+                      \midrule
+                      1 & Mountain Rural & 282.84 & 116 \\
+                      2 & Hill Rural & 583.10 & 239 \\
+                      3 & Hill Urban & 509.90 & 209 \\
+                      4 & Terai Rural & 883.18 & 363 \\
+                      5 & Terai Urban & 663.32 & 273 \\
+                      \midrule
+                      \textbf{Total} & & \textbf{2,922.34} & \textbf{1,200} \\
+                      \bottomrule
+                  \end{tabularx}
+              \end{table}
+          \end{column}
+      \end{columns}
+  \end{frame}
+  
+  \begin{frame}{Cost-Constrained Optimal Allocation}
+      Neyman allocation assumes that the unit cost of interviewing is uniform. In practice, interviewing in mountainous, remote rural areas can cost several times more than in dense urban corridors.
+      
+      \begin{block}{Cost-Constrained Optimal Allocation Formula}
+          $$n_h = n \times \frac{N_h S_h / \sqrt{c_h}}{\sum_{h=1}^H N_h S_h / \sqrt{c_h}}$$
+          where $c_h$ is the unit cost of interviewing a household in stratum $h$.
+      \end{block}
+      
+      Suppose the unit costs of interviewing in our five strata are:
+      \begin{itemize}
+          \item Mountain Rural: $c_1 = \text{NPR } 8,000$ (highly remote)
+          \item Hill Rural: $c_2 = \text{NPR } 4,000 \quad \bullet \quad$ Hill Urban: $c_3 = \text{NPR } 3,000$
+          \item Terai Rural: $c_4 = \text{NPR } 2,500 \quad \bullet \quad$ Terai Urban: $c_5 = \text{NPR } 2,000$ (highly accessible)
+      \end{itemize}
+  \end{frame}
+  
+  \begin{frame}{Cost-Constrained Optimal Allocation: Results}
+      \begin{table}
+          \caption{Table 8: Cost-Constrained Optimal Allocation Calculations}
+          \footnotesize
+          \begin{tabularx}{0.9\textwidth}{clrrrr}
+              \toprule
+              \textbf{Stratum} & \textbf{Description} & \textbf{Product ($N_h S_h$)} & \textbf{Unit Cost ($c_h$)} & \textbf{Factor ($N_h S_h / \sqrt{c_h}$)} & \textbf{Final $n_h$} \\
+              \midrule
+              1 & Mountain Rural & 960,000 & 8,000 & 10,733 & \cellcolor{red!15}\textbf{17} \\
+              2 & Hill Rural & 5,100,000 & 4,000 & 80,664 & 129 \\
+              3 & Hill Urban & 5,720,000 & 3,000 & 104,451 & 167 \\
+              4 & Terai Rural & 14,040,000 & 2,500 & 280,800 & 448 \\
+              5 & Terai Urban & 12,320,000 & 2,000 & 275,486 & 439 \\
+              \midrule
+              \textbf{Total} & & & & \textbf{752,134} & \textbf{1,200} \\
+              \bottomrule
+          \end{tabularx}
+      \end{table}
+      
+      \begin{alertblock}{Design Risk}
+          The sample size for Mountain Rural falls to only $17$ households. This is statistically invalid for calculating stable standard errors or performing sub-group analysis. We must apply a \textbf{minimum sample floor}!
+      \end{alertblock}
+  \end{frame}
+  
+  \begin{frame}{Minimum Sample Size Floors \& Top-Up Algorithm}
+      To prevent zero- or near-zero allocations, we enforce a minimum sample floor ($n_{\min}$), typically ranging from $30$ to $50$ depending on the survey type.
+      
+      \begin{block}{The Multi-Stage "Top-Up and Re-Allocate" Algorithm}
+          \begin{enumerate}
+              \item If any stratum falls below the floor $n_{\min}$, lock its sample size to exactly $n_{\min}$.
+              \item Calculate the remaining sample budget: 
+              $$n_{\text{remaining}} = n - \sum n_{\min}$$
+              \item Re-allocate the remaining sample only among unconstrained strata using the original formula.
+              \item Repeat check iteratively if necessary.
+          \end{enumerate}
+      \end{block}
+      
+      Applying $n_{\min} = 30$ to our Cost-Constrained results:
+      \begin{itemize}
+          \item Mountain Rural: $17 < 30 \implies$ locked to $30$.
+          \item Remaining sample to re-allocate: $1,200 - 30 = 1,170$ units distributed across Strata 2 to 5.
+      \end{itemize}
+  \end{frame}
+  
+  \begin{frame}{Comparison of All Major Allocation Methods}
+      \begin{table}
+          \caption{Table 9: Multi-Stage Iterative Flooring and Top-Up Results ($n_{\min} = 30$)}
+          \small
+          \begin{tabularx}{\textwidth}{clrrrr}
+              \toprule
+              \textbf{Stratum} & \textbf{Description} & \textbf{Equal} & \textbf{Proportional} & \textbf{Neyman} & \textbf{Cost-Constrained (Floor 30)} \\
+              \midrule
+              1 & Mountain Rural & 240 & 51 & 30 & \cellcolor{green!15}\textbf{30} \\
+              2 & Hill Rural & 240 & 215 & 160 & 127 \\
+              3 & Hill Urban & 240 & 164 & 180 & 165 \\
+              4 & Terai Rural & 240 & 493 & 442 & 443 \\
+              5 & Terai Urban & 240 & 277 & 388 & 435 \\
+              \midrule
+              \textbf{Total} & & \textbf{1,200} & \textbf{1,200} & \textbf{1,200} & \textbf{1,200} \\
+              \bottomrule
+          \end{tabularx}
+      \end{table}
+      
+      \begin{block}{Key Takeaway}
+          The floor-adjusted cost-constrained design successfully safeguards Mountain Rural's regional estimation capacity at 30, with the 13-unit top-up burden distributed across the rest of the country.
+      \end{block}
+  \end{frame}
+  
+  % ==========================================
+  % SECTION 5: IMPLEMENTING IN EXCEL
+  % ==========================================
+  \section{Excel Implementation}
+  
+  \begin{frame}{Excel Spreadsheet Architecture}
+      To build a dynamic, interactive sample allocation sheet, place your global parameter input blocks in a separate area (e.g., Columns Q and R) to separate logic from raw data.
+      
+      \begin{columns}
+          \begin{column}{0.4\textwidth}
+              \textbf{Global Settings:}
+              \begin{itemize}
+                  \item \textbf{Cell R1:} Total Sample ($n$) $= 1200$
+                  \item \textbf{Cell R2:} Exponent ($q$) $= 0.5$
+                  \item \textbf{Cell R3:} Floor ($n_{\min}$) $= 30$
+              \end{itemize}
+          \end{column}
+          \begin{column}{0.6\textwidth}
+              \textbf{Column Header Layout (Rows 1-7, Columns A-P):}
+              \begin{table}
+                  \tiny
+                  \begin{tabularx}{\textwidth}{ll}
+                      \toprule
+                      \textbf{Col} & \textbf{Variable / Formula Concept} \\
+                      \midrule
+                      A & Stratum ID \\
+                      B & Geographical Description \\
+                      C & Population ($N_h$) \\
+                      D & Standard Deviation ($S_h$) \\
+                      E & Unit Cost ($c_h$) \\
+                      F & Equal Allocation ($n_h$) \\
+                      G & Population Share ($W_h$) \\
+                      H & Proportional Allocation ($n_h$) \\
+                      I--K & Neyman Product, Proportion, and Allocation ($n_h$) \\
+                      L--N & Power Term ($N_h^q$), Power Proportion, and Power Allocation ($n_h$) \\
+                      O--P & Cost-Constrained Product ($N_h S_h / \sqrt{c_h}$), and Allocation ($n_h$) \\
+                      \bottomrule
+                  \end{tabularx}
+              \end{table}
+          \end{column}
+      \end{columns}
+  \end{frame}
+  
+  \begin{frame}{Excel Formulas (Row 2 Examples)}
+      Enter these formulas in Row 2 and copy down through Row 6 to ensure dynamic updates:
+      \vspace{0.3cm}
+      \begin{itemize}
+          \item \textbf{Equal Allocation (Col F):} \\
+          \texttt{=ROUND(\$R\$1 / COUNT(\$C\$2:\$C\$6), 0)}
+          \item \textbf{Population Share (Col G) \& Proportional Allocation (Col H):} \\
+          \texttt{=C2/SUM(\$C\$2:\$C\$6)} \quad and \quad \texttt{=ROUND(\$R\$1 * G2, 0)}
+          \item \textbf{Neyman Proportion (Col J) \& Neyman Allocation (Col K):} \\
+          \texttt{=I2/SUM(\$I\$2:\$I\$6)} \quad and \quad \texttt{=ROUND(\$R\$1 * J2, 0)} \quad \textit{(where I2 = C2*D2)}
+          \item \textbf{Power Term (Col L) \& Power Allocation (Col N):} \\
+          \texttt{=C2\textasciicircum\$R\$2} \quad and \quad \texttt{=ROUND(\$R\$1 * (L2/SUM(\$L\$2:\$L\$6)), 0)}
+          \item \textbf{Cost-Constrained Allocation (Col P):} \\
+          \texttt{=ROUND(\$R\$1 * (O2/SUM(\$O\$2:\$O\$6)), 0)} \quad \textit{(where O2 = (C2*D2)/SQRT(E2))}
+      \end{itemize}
+      \vspace{0.2cm}
+      \begin{block}{Column Total Checks (Row 7)}
+          Verify that all allocations sum to exactly $n$ by entering: \texttt{=SUM(F2:F6)}, \texttt{=SUM(H2:H6)}, etc.
+      \end{block}
+  \end{frame}
+  
+  % ==========================================
+  % SECTION 6: IMPLEMENTING IN STATA
+  % ==========================================
+  \section{Stata Implementation}
+  
+  \begin{frame}[fragile]{Stata Implementation: Initialization \& Baseline Data}
+      \small \textbf{Step 1: Input Baseline Data and Globals}
+      \vspace{0.1cm}
+  \begin{verbatim}
+  clear all
+  set seed 20830310     // Set seed for reproducibility
+  
+  input str20 description double N_h double S_h double c_h
+  "Mountain Rural" 80000 12 8000
+  "Hill Rural"     340000 15 4000
+  "Hill Urban"     260000 22 3000
+  "Terai Rural"    780000 18 2500
+  "Terai Urban"    440000 28 2000
+  end
+  gen stratum = _n
+  
+  global n_total = 1200    // Target sample size
+  global q_power = 0.5     // Power exponent
+  global n_min = 30        // Minimum sample floor
+  \end{verbatim}
+  \end{frame}
+  
+  \begin{frame}[fragile]{Stata Script: Classical, Neyman \& Power Allocations}
+      \small \textbf{Steps 2 \& 3: Standard Allocation Formulas}
+      \vspace{0.1cm}
+  \begin{verbatim}
+  * Equal and Proportional
+  quietly count
+  local H = r(N)
+  gen n_equal = round($n_total / `H', 1)
+  
+  quietly summarize N_h
+  local N_total = r(sum)
+  gen W_h = N_h / `N_total'
+  gen n_prop = round($n_total * W_h, 1)
+  
+  * Neyman Allocation
+  gen NhSh = N_h * S_h
+  quietly summarize NhSh
+  local sum_NhSh = r(sum)
+  gen n_neyman = round($n_total * (NhSh / `sum_NhSh'), 1)
+  
+  * Power Allocation
+  gen Nh_q = N_h ^ $q_power
+  quietly summarize Nh_q
+  local sum_Nhq = r(sum)
+  gen n_power = round($n_total * (Nh_q / `sum_Nhq'), 1)
+  \end{verbatim}
+  \end{frame}
+  
+  \begin{frame}[fragile]{Stata Script: Dynamic Minimum Flooring Loop}
+      \small \textbf{Step 5: The "Top-Up and Re-Allocate" Iterative Loop}
+      \vspace{0.1cm}
+  \tiny
+  \begin{verbatim}
+  gen n_floor = $n_total * (NhSh / `sum_NhSh')   // Start with raw Neyman
+  local converged = 0
+  local iter = 0
+  
+  while `converged' == 0 {
+      local iter = `iter' + 1
+      gen byte is_floored = (n_floor < $n_min)
+      quietly summarize is_floored
+      local num_floored = r(sum)
+      local allocated_to_floored = `num_floored' * $n_min
+      local n_remaining = $n_total - `allocated_to_floored'
+      
+      quietly summarize NhSh if is_floored == 0
+      local sum_NhSh_free = r(sum)
+      
+      replace n_floor = $n_min if is_floored == 1
+      replace n_floor = `n_remaining' * (NhSh / `sum_NhSh_free') if is_floored == 0
+      drop is_floored
+      
+      quietly count if n_floor < $n_min
+      if r(N) == 0 {
+          local converged = 1
+      }
+  }
+  gen n_neyman_floor = round(n_floor, 1)
+  \end{verbatim}
+  \end{frame}
+  
+  \begin{frame}[fragile]{Stata Script: Drawing Sample \& Declaring Design}
+      \small \textbf{Steps 6 \& 7: Sample Selection and Design Declaration}
+      \vspace{0.1cm}
+  \tiny
+  \begin{verbatim}
+  * Simulate a population frame of 1,900 clusters/units for demonstration
+  set obs 1900
+  gen hh_id = _n
+  gen stratum = 1 + (hh_id>80) + (hh_id>420) + (hh_id>680) + (hh_id>1460)
+  
+  * Merge the final allocations back to frame and draw sample
+  merge m:1 stratum using "allocation_results.dta", nogenerate
+  gen rand_draw = runiform()
+  bysort stratum (rand_draw): gen selection_rank = _n
+  gen hh_selected = (selection_rank <= n_allocated)
+  
+  * Set populations and calculate design weights
+  gen N_h_real = 80000 if stratum == 1
+  replace N_h_real = 340000 if stratum == 2
+  replace N_h_real = 260000 if stratum == 3
+  replace N_h_real = 780000 if stratum == 4
+  replace N_h_real = 440000 if stratum == 5
+  
+  gen weight = N_h_real / n_allocated
+  
+  * Declare the complex survey design
+  svyset hh_id [pweight=weight], strata(stratum)
+  svydescribe
+  \end{verbatim}
+  \end{frame}
+  
+  % ==========================================
+  % SECTION 7: EDGE CASES & QA CHECKS
+  % ==========================================
+  \section{Edge Cases and Quality Assurance}
+  
+  \begin{frame}{Rounding Drift and the Largest Remainder Method}
+      Because strata sample allocations ($n_h$) must be whole numbers, rounding can cause the sum to drift away from the target total ($n$), leaving the final sample size slightly over or under budget.
+      
+      \begin{block}{The Largest Remainder Solution}
+          \begin{enumerate}
+              \item Round all raw stratum sample sizes ($n_h$) \textbf{down} to the nearest integer.
+              \item Calculate the budget shortfall: $\text{Shortfall} = n - \sum \lfloor n_h \rfloor$.
+              \item Sort strata by their fractional remainders: $n_h - \lfloor n_h \rfloor$ in descending order.
+              \item Add exactly 1 unit to each of the top strata until the shortfall is fully resolved.
+          \end{enumerate}
+      \end{block}
+      
+      \begin{table}
+          \caption{Table 10: Rounding Drift and Largest Remainder Adjustment}
+          \tiny
+          \begin{tabularx}{0.8\textwidth}{lrrrr}
+              \toprule
+              \textbf{Stratum Description} & \textbf{Raw $n_h$} & \textbf{Rounded Down} & \textbf{Remainder} & \textbf{Final Adjusted $n_h$} \\
+              \midrule
+              Mountain Rural & 30.20 & 30 & 0.20 & 30 \\
+              Hill Rural & 160.46 & 160 & 0.46 & 160 \\
+              Hill Urban & 180.00 & 180 & 0.00 & 180 \\
+              Terai Rural & 441.71 & 441 & 0.71 & \cellcolor{green!15}$441+1 = 442$ \\
+              Terai Urban & 387.60 & 387 & 0.60 & \cellcolor{green!15}$387+1 = 388$ \\
+              \midrule
+              \textbf{Total} & \textbf{1,200.00} & \textbf{1,198} & \textbf{(Shortfall = 2)} & \textbf{1,200} \\
+              \bottomrule
+          \end{tabularx}
+      \end{table}
+  \end{frame}
+  
+  \begin{frame}{Practical Field Adjustments: Over \& Under Allocation}
+      \begin{columns}
+          \begin{column}{0.5\textwidth}
+              \begin{block}{Over-Allocation ($n_h > N_h$)}
+                  \begin{itemize}
+                      \item Occurs in small strata with extremely high variance.
+                      \item \textbf{Solution:} Designate as a \textbf{"Take-All" Stratum}, and set $n_h = N_h$.
+                      \item Remove the stratum from the sampling design, convert it to a census segment, and re-allocate the remaining budget to other strata.
+                  \end{itemize}
+              \end{block}
+          \end{column}
+          \begin{column}{0.5\textwidth}
+              \begin{block}{Under-Allocation ($n_h \le 1$)}
+                  \begin{itemize}
+                      \item Strata with small populations and low variance may get close to $0$ or $1$ sample.
+                      \item \textbf{Statistical Failure:} $n_h = 0$ causes complete bias. $n_h = 1$ makes stratum standard error calculations impossible.
+                      \item \textbf{Solution:} Enforce a strict minimum floor ($n_{\min} \ge 30$).
+                  \end{itemize}
+              \end{block}
+          \end{column}
+      \end{columns}
+  \end{frame}
+  
+  \begin{frame}{Kish's Weight Dispersion Approximation}
+      Unequal probability designs generate variance inflation. We can approximate the \textbf{Design Effect (DEFF)} caused by weight dispersion using Kish's formula:
+      
+      \begin{block}{Kish's DEFF Formula}
+          $$\text{DEFF}_{\text{weights}} \approx 1 + \text{CV}(w_h)^2$$
+          where $\text{CV}(w_h)$ is the coefficient of variation of the design weights across the selected sample.
+      \end{block}
+      
+      \begin{alertblock}{Operational Guide}
+          A $\text{DEFF}_{\text{weights}}$ value above \textbf{2.0} indicates that the allocation introduces too much variance. If this occurs, researchers should adjust the allocation back towards a proportional layout.
+      \end{alertblock}
+  \end{frame}
+  
+  \begin{frame}{Final Sample Design Weights and Kish's DEFF Calculations}
+      \begin{columns}
+          \begin{column}{0.55\textwidth}
+              \begin{table}
+                  \caption{Table 11: Final Sample Design Weights Analysis}
+                  \tiny
+                  \begin{tabularx}{\textwidth}{lrrrr}
+                      \toprule
+                      \textbf{Stratum} & \textbf{Pop. ($N_h$)} & \textbf{Sample ($n_h$)} & \textbf{Weight ($w_h$)} & \textbf{Factor ($N_h^2/n_h$)} \\
+                      \midrule
+                      1. Mountain Rural & 80,000 & 30 & 2,666.67 & 2.13 $\times 10^8$ \\
+                      2. Hill Rural     & 340,000 & 127 & 2,677.17 & 9.10 $\times 10^8$ \\
+                      3. Hill Urban     & 260,000 & 165 & 1,575.76 & 4.10 $\times 10^8$ \\
+                      4. Terai Rural    & 780,000 & 443 & 1,760.72 & 13.73 $\times 10^8$ \\
+                      5. Terai Urban    & 440,000 & 435 & 1,011.49 & 4.45 $\times 10^8$ \\
+                      \midrule
+                      \textbf{Total}    & \textbf{1.90M} & \textbf{1,200} & \textbf{---} & \textbf{3.35 $\times 10^9$} \\
+                      \bottomrule
+                  \end{tabularx}
+              \end{table}
+          \end{column}
+          \begin{column}{0.45\textwidth}
+              \textbf{Kish's Dispersion Calculation:}
+              \begin{block}{Formula}
+                  $$\text{DEFF}_{\text{weights}} = \frac{n \sum_{h=1}^H \frac{N_h^2}{n_h}}{N^2}$$
+              \end{block}
+              \tiny
+              \textbf{Substitution:}
+              \begin{align*}
+                  \text{DEFF}_{\text{weights}} &= \frac{1,200 \times 3.352 \times 10^9}{(1.90 \times 10^6)^2} \\
+                  &= \frac{4.022 \times 10^{12}}{3.610 \times 10^{12}} \approx \mathbf{1.114}
+              \end{align*}
+              \textbf{Interpretation:}
+              Weight dispersion causes a minor $11.4\%$ variance inflation, which is safely below the standard design warning limit of $2.0$.
+          \end{column}
+      \end{columns}
+  \end{frame}
+  
+  \begin{frame}{Final Pre-Fieldwork Quality Checks}
+      Before releasing the sample allocation plan to field teams, verify that it passes these critical checks:
+      
+      \vspace{0.3cm}
+      \begin{itemize}
+          \item[\(\square\)] \textbf{Budget Alignment:} The sum of allocated samples matches the national total exactly ($\sum n_h = n$).
+          \item[\(\square\)] \textbf{Minimum Floors Met:} Every stratum has at least $n_{\min}$ (typically $\ge 30$) to support variance estimation.
+          \item[\(\square\)] \textbf{Over-Allocation Check:} Confirm that no stratum has $n_h > N_h$.
+          \item[\(\square\)] \textbf{Weight Dispersion:} Keep the ratio of the maximum to minimum design weight reasonable (ideally $< 4.0$) to avoid inflating standard errors.
+          \item[\(\square\)] \textbf{Cost Feasibility:} Ensure the projected fieldwork cost ($\sum n_h \times c_h$) remains within the approved financial budget limits.
+      \end{itemize}
+  \end{frame}
+  
+  \end{document}

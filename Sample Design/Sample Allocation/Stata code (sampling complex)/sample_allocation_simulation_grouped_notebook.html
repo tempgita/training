@@ -1,0 +1,572 @@
+﻿<!doctype html>
+<html><head><meta charset='utf-8'><title>Grouped annotated Stata notebook</title>
+<style>
+body{margin:0;background:#f5f6f8;color:#111827;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}.page{max-width:1180px;margin:0 auto;padding:28px 24px 64px}h1{font-size:30px;margin:8px 0}h2{font-size:22px;margin:34px 0 10px;border-bottom:1px solid #d8dee9;padding-bottom:8px}h3{font-size:16px;margin:0 0 8px;color:#111827}p{line-height:1.55;margin:8px 0 10px}.note{background:#fff;border:1px solid #d8dee9;border-left:5px solid #4c78a8;border-radius:6px;padding:12px 14px;margin:14px 0}.cell{background:#fff;border:1px solid #d8dee9;border-radius:6px;margin:16px 0 22px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}.prompt{float:left;width:82px;color:#2563eb;font-family:Consolas,Menlo,monospace;font-size:13px;padding:13px 0;text-align:right}.input,.output{margin-left:96px;padding:12px 16px;border-left:1px solid #edf0f5}.output{border-top:1px solid #edf0f5;background:#fcfcfd}pre{margin:0;white-space:pre-wrap;font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.45}code{font-family:Consolas,Menlo,monospace}table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 10px}th,td{border:1px solid #d8dee9;padding:7px 8px;text-align:right;vertical-align:top}th{background:#eef2f7;font-weight:600}td:first-child,th:first-child{text-align:left}.small{font-size:12px;color:#4b5563}
+</style></head><body><main class='page'>
+<h1>Grouped Annotated Notebook: <code>sample_allocation_simulation.do</code></h1>
+<p>This version groups related Stata commands into notebook cells. Comment lines are shown only as part of the source context and are not explained separately.</p>
+<div class='note'><strong>Source:</strong> <code>sample_allocation_simulation.do</code>. <strong>Grouped code cells:</strong> 31. <strong>Results:</strong> included after the grouped source section.</div>
+<h2>1. Grouped Source Code and Explanations</h2>
+<section class='cell'><div class='prompt'>In [1]:</div><div class='input'><h3>Initialize Stata Session</h3><pre>version 16.0
+clear all
+set more off
+set seed 20830310
+
+capture mkdir &quot;output&quot;</pre></div><div class='output'><p>Sets the Stata version, clears memory, prevents paging, fixes the random seed for reproducibility, and creates the output folder.</p></div></section>
+<section class='cell'><div class='prompt'>In [2]:</div><div class='input'><h3>Set Main Design Parameters</h3><pre>local N_population = 300000
+local n_total      = 1200
+local q_power      = 0.5
+local n_min        = 30</pre></div><div class='output'><p>Defines the simulated population size, total sample size, power-allocation exponent, and minimum sample floor used throughout the program.</p></div></section>
+<section class='cell'><div class='prompt'>In [3]:</div><div class='input'><h3>Define Largest Remainder Rounding Program</h3><pre>capture program drop largest_remainder
+program define largest_remainder
+    syntax varname(numeric), Generate(name) Total(integer)
+
+    tempvar base rem rank add
+    quietly {
+        gen long `base&#39; = floor(`varlist&#39;)
+        gen double `rem&#39; = `varlist&#39; - `base&#39;
+        summarize `base&#39;, meanonly
+        local shortfall = `total&#39; - r(sum)
+
+        gen byte `add&#39; = 0
+        if `shortfall&#39; &gt; 0 {
+            egen long `rank&#39; = rank(-`rem&#39;), unique
+            replace `add&#39; = 1 if `rank&#39; &lt;= `shortfall&#39;
+        }
+        gen long `generate&#39; = `base&#39; + `add&#39;
+    }
+end</pre></div><div class='output'><p>Creates a reusable helper that converts decimal allocation values into integer sample sizes while preserving the exact total sample target.</p></div></section>
+<section class='cell'><div class='prompt'>In [4]:</div><div class='input'><h3>Enter Stratum Parameters</h3><pre>clear
+input byte stratum str18 stratum_name long N_h double S_h double unit_cost double base_income
+1 &quot;Mountain Rural&quot;  12632 12 8000 28000
+2 &quot;Hill Rural&quot;      53684 15 4000 34000
+3 &quot;Hill Urban&quot;      41053 22 3000 52000
+4 &quot;Terai Rural&quot;    123158 18 2500 40000
+5 &quot;Terai Urban&quot;     69473 28 2000 65000
+end</pre></div><div class='output'><p>Creates the five stratum records, including population size, income standard deviation, unit cost, and baseline income assumptions.</p></div></section>
+<section class='cell'><div class='prompt'>In [5]:</div><div class='input'><h3>Validate and Expand the Population Frame</h3><pre>summarize N_h, meanonly
+assert r(sum) == `N_population&#39;
+
+expand N_h
+bysort stratum: gen long unit_in_stratum = _n
+gen long pop_id = _n
+order pop_id stratum stratum_name</pre></div><div class='output'><p>Checks that the stratum populations sum to 300,000, expands each stratum record into unit-level observations, and assigns population identifiers.</p></div></section>
+<section class='cell'><div class='prompt'>In [6]:</div><div class='input'><h3>Create Primary Sampling Units</h3><pre>bysort stratum: gen long psu_in_stratum = ceil(unit_in_stratum / 50)
+egen long psu = group(stratum psu_in_stratum)
+bysort psu: gen int psu_size = _N</pre></div><div class='output'><p>Builds artificial PSUs within each stratum so cluster and two-stage sampling examples can be demonstrated.</p></div></section>
+<section class='cell'><div class='prompt'>In [7]:</div><div class='input'><h3>Simulate Analysis Variables and Save Population</h3><pre>gen byte urban = inlist(stratum, 3, 5)
+gen byte female = (runiform() &lt; 0.51)
+gen byte employed = (runiform() &lt; cond(urban, 0.68, 0.59))
+gen byte household_size = ceil(runiform() * 6)
+replace household_size = household_size + 1 if stratum == 1 &amp; runiform() &lt; 0.25
+gen double income = base_income + (S_h * 1000 * rnormal())
+replace income = 5000 + 2000 * runiform() if income &lt; 5000
+gen double consumption = 0.72 * income + 3000 * household_size + 5000 * runiform()
+label var pop_id &quot;Population unit identifier&quot;
+label var stratum &quot;Sampling stratum&quot;
+label var stratum_name &quot;Sampling stratum name&quot;
+label var psu &quot;Primary sampling unit&quot;
+label var income &quot;Simulated monthly income&quot;
+label var consumption &quot;Simulated monthly consumption&quot;
+
+compress
+save &quot;output/simulated_population_300000.dta&quot;, replace</pre></div><div class='output'><p>Generates demographic and income variables, labels key fields, compresses the dataset, and saves the 300,000-row simulated population file.</p></div></section>
+<section class='cell'><div class='prompt'>In [8]:</div><div class='input'><h3>Prepare Stratum-Level Allocation Dataset</h3><pre>preserve
+keep stratum stratum_name N_h S_h unit_cost
+duplicates drop
+sort stratum
+
+gen double W_h = N_h / `N_population&#39;
+gen double raw_equal   = `n_total&#39; / _N
+gen double raw_prop    = `n_total&#39; * W_h
+gen double NhSh        = N_h * S_h
+summarize NhSh, meanonly
+gen double raw_neyman  = `n_total&#39; * NhSh / r(sum)
+gen double Nh_q        = N_h ^ `q_power&#39;
+summarize Nh_q, meanonly
+gen double raw_power   = `n_total&#39; * Nh_q / r(sum)
+gen double NhSh_cost   = N_h * S_h / sqrt(unit_cost)
+summarize NhSh_cost, meanonly
+gen double raw_cost    = `n_total&#39; * NhSh_cost / r(sum)</pre></div><div class='output'><p>Reduces the data to one row per stratum and computes raw decimal allocations for equal, proportional, Neyman, power, and cost-constrained designs.</p></div></section>
+<section class='cell'><div class='prompt'>In [9]:</div><div class='input'><h3>Round Allocation Results</h3><pre>largest_remainder raw_equal,  generate(n_equal)  total(`n_total&#39;)
+largest_remainder raw_prop,   generate(n_prop)   total(`n_total&#39;)
+largest_remainder raw_neyman, generate(n_neyman) total(`n_total&#39;)
+largest_remainder raw_power,  generate(n_power)  total(`n_total&#39;)
+largest_remainder raw_cost,   generate(n_cost)   total(`n_total&#39;)</pre></div><div class='output'><p>Applies largest remainder rounding to each raw allocation so every method has integer sample sizes summing exactly to 1,200.</p></div></section>
+<section class='cell'><div class='prompt'>In [10]:</div><div class='input'><h3>Apply Minimum Floor to Cost Allocation</h3><pre>gen double raw_cost_floor = raw_cost
+gen byte floor_fixed = 0
+local done = 0
+while `done&#39; == 0 {
+    replace floor_fixed = 1 if raw_cost_floor &lt; `n_min&#39;
+    summarize floor_fixed, meanonly
+    local fixed_n = r(sum) * `n_min&#39;
+    summarize NhSh_cost if floor_fixed == 0, meanonly
+    local free_sum = r(sum)
+    replace raw_cost_floor = `n_min&#39; if floor_fixed == 1
+    replace raw_cost_floor = (`n_total&#39; - `fixed_n&#39;) * NhSh_cost / `free_sum&#39; if floor_fixed == 0
+    count if raw_cost_floor &lt; `n_min&#39; &amp; floor_fixed == 0
+    if r(N) == 0 local done = 1
+}
+largest_remainder raw_cost_floor, generate(n_cost_floor) total(`n_total&#39;)</pre></div><div class='output'><p>Raises any under-sized stratum to the minimum sample floor and reallocates the remaining sample across the unfixed strata until the floor rule is satisfied.</p></div></section>
+<section class='cell'><div class='prompt'>In [11]:</div><div class='input'><h3>Compute Fractions, Weights, and Save Allocations</h3><pre>foreach v in equal prop neyman power cost cost_floor {
+    gen double f_`v&#39; = n_`v&#39; / N_h
+    gen double w_`v&#39; = N_h / n_`v&#39;
+}
+
+label var n_equal &quot;Equal allocation&quot;
+label var n_prop &quot;Proportional allocation&quot;
+label var n_neyman &quot;Neyman optimal allocation&quot;
+label var n_power &quot;Power allocation, q = 0.5&quot;
+label var n_cost &quot;Cost-constrained allocation&quot;
+label var n_cost_floor &quot;Cost-constrained allocation with minimum floor&quot;
+
+save &quot;output/allocation_results.dta&quot;, replace
+restore</pre></div><div class='output'><p>Calculates stratum sampling fractions and design weights for every allocation method, labels allocation variables, saves the allocation dataset, and returns to the population frame.</p></div></section>
+<section class='cell'><div class='prompt'>In [12]:</div><div class='input'><h3>Attach Allocations to the Population Frame</h3><pre>use &quot;output/simulated_population_300000.dta&quot;, clear
+merge m:1 stratum using &quot;output/allocation_results.dta&quot;, nogen</pre></div><div class='output'><p>Loads the simulated population and merges stratum-level allocation results onto every population unit.</p></div></section>
+<section class='cell'><div class='prompt'>In [13]:</div><div class='input'><h3>Draw a Simple Random Sample</h3><pre>gen double rand_srs = runiform()
+sort rand_srs
+gen byte sample_srs = (_n &lt;= `n_total&#39;)</pre></div><div class='output'><p>Assigns a random number to every unit, sorts by that number, and selects the first 1,200 units.</p></div></section>
+<section class='cell'><div class='prompt'>In [14]:</div><div class='input'><h3>Draw a Systematic Sample</h3><pre>sort pop_id
+local k = floor(_N / `n_total&#39;)
+local start = ceil(runiform() * `k&#39;)
+gen byte sample_systematic = (mod(pop_id - `start&#39;, `k&#39;) == 0)</pre></div><div class='output'><p>Computes the sampling interval, chooses a random start, and selects units at regular intervals through the ordered frame.</p></div></section>
+<section class='cell'><div class='prompt'>In [15]:</div><div class='input'><h3>Draw Stratified Samples for All Allocation Methods</h3><pre>foreach method in equal prop neyman power cost cost_floor {
+    gen double rand_`method&#39; = runiform()
+    bysort stratum (rand_`method&#39;): gen long rank_`method&#39; = _n
+    gen byte sample_`method&#39; = (rank_`method&#39; &lt;= n_`method&#39;)
+}</pre></div><div class='output'><p>Loops through the six allocation methods, randomly ranks units within each stratum, and selects the allocated number of units per stratum.</p></div></section>
+<section class='cell'><div class='prompt'>In [16]:</div><div class='input'><h3>Draw a One-Stage Cluster Sample</h3><pre>preserve
+keep psu psu_size
+duplicates drop
+gen double rand_cluster = runiform()
+sort rand_cluster
+gen byte selected_cluster = (_n &lt;= 24)
+tempfile selected_clusters
+save `selected_clusters&#39;, replace
+restore
+merge m:1 psu using `selected_clusters&#39;, keep(master match) nogen
+replace selected_cluster = 0 if missing(selected_cluster)
+gen byte sample_cluster = selected_cluster</pre></div><div class='output'><p>Selects 24 PSUs at random and includes every population unit in the selected PSUs.</p></div></section>
+<section class='cell'><div class='prompt'>In [17]:</div><div class='input'><h3>Draw a Two-Stage Cluster Sample</h3><pre>preserve
+keep psu psu_size
+duplicates drop
+gen double rand_twostage_psu = runiform()
+sort rand_twostage_psu
+gen byte selected_twostage_psu = (_n &lt;= 120)
+tempfile selected_twostage_psus
+save `selected_twostage_psus&#39;, replace
+restore
+merge m:1 psu using `selected_twostage_psus&#39;, keep(master match) nogen
+replace selected_twostage_psu = 0 if missing(selected_twostage_psu)
+gen double rand_twostage_unit = runiform()
+bysort psu (rand_twostage_unit): gen long rank_twostage_unit = _n
+gen byte sample_twostage = (selected_twostage_psu == 1 &amp; rank_twostage_unit &lt;= 10)</pre></div><div class='output'><p>Selects 120 PSUs first, then randomly selects 10 units within each selected PSU.</p></div></section>
+<section class='cell'><div class='prompt'>In [18]:</div><div class='input'><h3>Create Weights, Declare Design, and Save Sampling Frame</h3><pre>foreach method in equal prop neyman power cost cost_floor {
+    gen double weight_`method&#39; = N_h / n_`method&#39;
+}
+
+svyset pop_id [pweight = weight_prop], strata(stratum)
+
+compress
+save &quot;output/sampling_frame_with_flags.dta&quot;, replace</pre></div><div class='output'><p>Computes stratum-level design weights for allocation-based samples, declares the proportional design with svyset, compresses the frame, and saves all sample flags.</p></div></section>
+<section class='cell'><div class='prompt'>In [19]:</div><div class='input'><h3>Build Population Summary Results</h3><pre>tempfile pop_summary sample_summary sample_by_stratum
+
+use &quot;output/simulated_population_300000.dta&quot;, clear
+collapse (count) N=pop_id (mean) mean_income=income mean_consumption=consumption ///
+    (sd) sd_income=income, by(stratum stratum_name)
+save `pop_summary&#39;, replace</pre></div><div class='output'><p>Creates a temporary stratum summary dataset with population counts, mean income, mean consumption, and income standard deviation.</p></div></section>
+<section class='cell'><div class='prompt'>In [20]:</div><div class='input'><h3>Build Sample Summary Results</h3><pre>use &quot;output/sampling_frame_with_flags.dta&quot;, clear
+postfile smry str22 method long selected double mean_income double weighted_income ///
+    double min_weight double max_weight using `sample_summary&#39;, replace
+
+foreach method in srs systematic cluster twostage {
+    quietly count if sample_`method&#39; == 1
+    local selected = r(N)
+    quietly summarize income if sample_`method&#39; == 1, meanonly
+    local mean_income = r(mean)
+    post smry (&quot;`method&#39;&quot;) (`selected&#39;) (`mean_income&#39;) (.) (.) (.)
+}
+
+foreach method in equal prop neyman power cost cost_floor {
+    quietly count if sample_`method&#39; == 1
+    local selected = r(N)
+    quietly summarize income if sample_`method&#39; == 1, meanonly
+    local mean_income = r(mean)
+    quietly summarize income [aw=weight_`method&#39;] if sample_`method&#39; == 1, meanonly
+    local weighted_income = r(mean)
+    quietly summarize weight_`method&#39; if sample_`method&#39; == 1, meanonly
+    local min_weight = r(min)
+    local max_weight = r(max)
+    post smry (&quot;`method&#39;&quot;) (`selected&#39;) (`mean_income&#39;) (`weighted_income&#39;) (`min_weight&#39;) (`max_weight&#39;)
+}
+postclose smry</pre></div><div class='output'><p>Posts method-level sample sizes and income estimates into a temporary result dataset, using weighted means where design weights are available.</p></div></section>
+<section class='cell'><div class='prompt'>In [21]:</div><div class='input'><h3>Build Selected-Units-by-Stratum Results</h3><pre>use &quot;output/sampling_frame_with_flags.dta&quot;, clear
+postfile bys str22 method byte stratum str18 stratum_name long selected using `sample_by_stratum&#39;, replace
+foreach method in srs systematic equal prop neyman power cost cost_floor cluster twostage {
+    forvalues h = 1/5 {
+        quietly count if sample_`method&#39; == 1 &amp; stratum == `h&#39;
+        local selected = r(N)
+        quietly levelsof stratum_name if stratum == `h&#39;, local(sname)
+        local sname_clean : subinstr local sname `&quot;&quot;&quot;&#39; &quot;&quot;, all
+        post bys (&quot;`method&#39;&quot;) (`h&#39;) (&quot;`sname_clean&#39;&quot;) (`selected&#39;)
+    }
+}
+postclose bys</pre></div><div class='output'><p>Posts the number of selected units in each stratum for every sampling method.</p></div></section>
+<section class='cell'><div class='prompt'>In [22]:</div><div class='input'><h3>Start Main HTML Notebook</h3><pre>local html &quot;output/sampling_examples_notebook.html&quot;
+file open html using &quot;`html&#39;&quot;, write replace
+
+file write html &quot;&lt;!doctype html&gt;&quot; _n
+file write html &quot;&lt;html&gt;&lt;head&gt;&lt;meta charset=&#39;utf-8&#39;&gt;&lt;title&gt;Sample allocation and sampling examples&lt;/title&gt;&quot; _n
+file write html &quot;&lt;style&gt;&quot; _n
+file write html &quot;body{margin:0;background:#f5f6f8;color:#111827;font-family:-apple-system,BlinkMacSystemFont,&#39;Segoe UI&#39;,Arial,sans-serif;}&quot; _n
+file write html &quot;.page{max-width:1120px;margin:0 auto;padding:28px 24px 60px;}&quot; _n
+file write html &quot;h1{font-size:30px;margin:10px 0 8px;} h2{font-size:23px;margin:34px 0 10px;border-bottom:1px solid #d8dee9;padding-bottom:8px;} h3{font-size:18px;margin:24px 0 8px;}&quot; _n
+file write html &quot;p{line-height:1.55;margin:8px 0 14px;} .note{background:#fff;border:1px solid #d8dee9;border-left:5px solid #4c78a8;border-radius:6px;padding:12px 14px;margin:14px 0;}&quot; _n
+file write html &quot;.cell{background:#fff;border:1px solid #d8dee9;border-radius:6px;margin:16px 0 22px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04);}&quot; _n
+file write html &quot;.prompt{float:left;width:82px;color:#2563eb;font-family:Consolas,Menlo,monospace;font-size:13px;padding:13px 0;text-align:right;}&quot; _n
+file write html &quot;.input,.output{margin-left:96px;padding:12px 16px;border-left:1px solid #edf0f5;}&quot; _n
+file write html &quot;.output{border-top:1px solid #edf0f5;background:#fcfcfd;} pre{margin:0;white-space:pre-wrap;font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.45;}&quot; _n
+file write html &quot;table{border-collapse:collapse;width:100%;font-size:13px;margin:4px 0 8px;} th,td{border:1px solid #d8dee9;padding:7px 8px;text-align:right;} th{background:#eef2f7;font-weight:600;} td:first-child,th:first-child{text-align:left;} .small{font-size:12px;color:#4b5563;}&quot; _n
+file write html &quot;&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;main class=&#39;page&#39;&gt;&quot; _n
+file write html &quot;&lt;h1&gt;Sample Allocation and Sampling Examples in Stata&lt;/h1&gt;&quot; _n
+file write html &quot;&lt;p&gt;This notebook-style report was generated by &lt;code&gt;sample_allocation_simulation.do&lt;/code&gt;. It uses a simulated population of 300,000 units and demonstrates the allocation methods described in the guidebook, followed by common sampling designs.&lt;/p&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;note&#39;&gt;&lt;strong&gt;Files created:&lt;/strong&gt; &lt;code&gt;output/simulated_population_300000.dta&lt;/code&gt;, &lt;code&gt;output/allocation_results.dta&lt;/code&gt;, &lt;code&gt;output/sampling_frame_with_flags.dta&lt;/code&gt;.&lt;/div&gt;&quot; _n</pre></div><div class='output'><p>Opens the main notebook HTML file and writes the page structure, styling, title, and file summary.</p></div></section>
+<section class='cell'><div class='prompt'>In [23]:</div><div class='input'><h3>Write Population Result Cell</h3><pre>* Population summary section
+file write html &quot;&lt;h2&gt;1. Simulated Population Frame&lt;/h2&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;In [1]:&lt;/div&gt;&lt;div class=&#39;input&#39;&gt;&lt;pre&gt;clear&quot; _n
+file write html &quot;set seed 20830310&quot; _n
+file write html &quot;input byte stratum str18 stratum_name long N_h double S_h double unit_cost double base_income&quot; _n
+file write html &quot;expand N_h&quot; _n
+file write html &quot;generate income = base_income + (S_h * 1000 * rnormal())&quot; _n
+file write html &quot;save &quot;&quot;output/simulated_population_300000.dta&quot;&quot;, replace&lt;/pre&gt;&lt;/div&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;output&#39;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Stratum&lt;/th&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Population&lt;/th&gt;&lt;th&gt;Mean income&lt;/th&gt;&lt;th&gt;Income SD&lt;/th&gt;&lt;th&gt;Mean consumption&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n
+use `pop_summary&#39;, clear
+sort stratum
+forvalues i = 1/`=_N&#39; {
+    file write html &quot;&lt;tr&gt;&lt;td&gt;&quot; %4.0f (stratum[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; (stratum_name[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (N[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (mean_income[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (sd_income[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (mean_consumption[`i&#39;]) &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n
+}
+file write html &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n</pre></div><div class='output'><p>Writes the simulated-population code cell and fills the population summary table into the HTML report.</p></div></section>
+<section class='cell'><div class='prompt'>In [24]:</div><div class='input'><h3>Write Allocation Result Cell</h3><pre>* Allocation section
+file write html &quot;&lt;h2&gt;2. Allocation Methods&lt;/h2&gt;&quot; _n
+file write html &quot;&lt;p&gt;The total target sample size is &lt;code&gt;n = `n_total&#39;&lt;/code&gt;. Integer allocations use largest remainder rounding so every method sums exactly to the target.&lt;/p&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;In [2]:&lt;/div&gt;&lt;div class=&#39;input&#39;&gt;&lt;pre&gt;generate W_h = N_h / `N_population&#39;&quot; _n
+file write html &quot;generate raw_prop = `n_total&#39; * W_h&quot; _n
+file write html &quot;generate NhSh = N_h * S_h&quot; _n
+file write html &quot;egen total_NhSh = total(NhSh)&quot; _n
+file write html &quot;generate raw_neyman = `n_total&#39; * NhSh / total_NhSh&quot; _n
+file write html &quot;generate Nh_q = N_h ^ `q_power&#39;&quot; _n
+file write html &quot;egen total_Nh_q = total(Nh_q)&quot; _n
+file write html &quot;generate raw_power = `n_total&#39; * Nh_q / total_Nh_q&quot; _n
+file write html &quot;generate NhSh_cost = N_h * S_h / sqrt(unit_cost)&quot; _n
+file write html &quot;egen total_NhSh_cost = total(NhSh_cost)&quot; _n
+file write html &quot;generate raw_cost = `n_total&#39; * NhSh_cost / total_NhSh_cost&quot; _n
+file write html &quot;largest_remainder raw_prop, generate(n_prop) total(`n_total&#39;)&lt;/pre&gt;&lt;/div&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;output&#39;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Stratum&lt;/th&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Population&lt;/th&gt;&lt;th&gt;Equal&lt;/th&gt;&lt;th&gt;Proportional&lt;/th&gt;&lt;th&gt;Neyman&lt;/th&gt;&lt;th&gt;Power q=.5&lt;/th&gt;&lt;th&gt;Cost&lt;/th&gt;&lt;th&gt;Cost + floor&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n
+use &quot;output/allocation_results.dta&quot;, clear
+sort stratum
+forvalues i = 1/`=_N&#39; {
+    file write html &quot;&lt;tr&gt;&lt;td&gt;&quot; %4.0f (stratum[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; (stratum_name[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (N_h[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_equal[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_prop[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_neyman[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_power[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_cost[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_cost_floor[`i&#39;]) &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n
+}
+file write html &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n
+
+* Sampling examples summary</pre></div><div class='output'><p>Writes the allocation code cell and fills the side-by-side allocation table into the HTML report.</p></div></section>
+<section class='cell'><div class='prompt'>In [25]:</div><div class='input'><h3>Write Sampling Summary Cell</h3><pre>file write html &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;In [3]:&lt;/div&gt;&lt;div class=&#39;input&#39;&gt;&lt;pre&gt;* Simple random sample&quot; _n
+file write html &quot;generate rand_srs = runiform()&quot; _n
+file write html &quot;sort rand_srs&quot; _n
+file write html &quot;generate sample_srs = (_n &amp;lt;= `n_total&#39;)&quot; _n
+file write html &quot;&quot; _n
+file write html &quot;* Systematic sample&quot; _n
+file write html &quot;local k = floor(_N / `n_total&#39;)&quot; _n
+file write html &quot;local start = ceil(runiform() * `k&#39;)&quot; _n
+file write html &quot;generate sample_systematic = (mod(pop_id - `start&#39;, `k&#39;) == 0)&quot; _n
+file write html &quot;&quot; _n
+file write html &quot;* Stratified sample using one allocation column&quot; _n
+file write html &quot;generate rand_prop = runiform()&quot; _n
+file write html &quot;bysort stratum (rand_prop): generate rank_prop = _n&quot; _n
+file write html &quot;generate sample_prop = (rank_prop &amp;lt;= n_prop)&lt;/pre&gt;&lt;/div&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;output&#39;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Method&lt;/th&gt;&lt;th&gt;Selected n&lt;/th&gt;&lt;th&gt;Mean income&lt;/th&gt;&lt;th&gt;Weighted income&lt;/th&gt;&lt;th&gt;Min weight&lt;/th&gt;&lt;th&gt;Max weight&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n
+use `sample_summary&#39;, clear
+gen byte order = .
+replace order = 1 if method == &quot;srs&quot;
+replace order = 2 if method == &quot;systematic&quot;
+replace order = 3 if method == &quot;equal&quot;
+replace order = 4 if method == &quot;prop&quot;
+replace order = 5 if method == &quot;neyman&quot;
+replace order = 6 if method == &quot;power&quot;
+replace order = 7 if method == &quot;cost&quot;
+replace order = 8 if method == &quot;cost_floor&quot;
+replace order = 9 if method == &quot;cluster&quot;
+replace order = 10 if method == &quot;twostage&quot;
+sort order
+forvalues i = 1/`=_N&#39; {
+    file write html &quot;&lt;tr&gt;&lt;td&gt;&quot; (method[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (mean_income[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (weighted_income[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %10.1fc (min_weight[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %10.1fc (max_weight[`i&#39;]) &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n</pre></div><div class='output'><p>Writes the sampling example code cell and method-level sample result table into the HTML report.</p></div></section>
+<section class='cell'><div class='prompt'>In [26]:</div><div class='input'><h3>Write Selected-Units-by-Stratum Cell</h3><pre>
+* Counts by stratum
+file write html &quot;&lt;h2&gt;4. Selected Units by Stratum&lt;/h2&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;In [4]:&lt;/div&gt;&lt;div class=&#39;input&#39;&gt;&lt;pre&gt;tabulate stratum if sample_method == 1&lt;/pre&gt;&lt;/div&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;output&#39;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Method&lt;/th&gt;&lt;th&gt;Mountain Rural&lt;/th&gt;&lt;th&gt;Hill Rural&lt;/th&gt;&lt;th&gt;Hill Urban&lt;/th&gt;&lt;th&gt;Terai Rural&lt;/th&gt;&lt;th&gt;Terai Urban&lt;/th&gt;&lt;th&gt;Total&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n
+use `sample_by_stratum&#39;, clear
+reshape wide selected, i(method) j(stratum)
+egen total = rowtotal(selected1 selected2 selected3 selected4 selected5)
+gen byte order = .
+replace order = 1 if method == &quot;srs&quot;
+replace order = 2 if method == &quot;systematic&quot;
+replace order = 3 if method == &quot;equal&quot;
+replace order = 4 if method == &quot;prop&quot;
+replace order = 5 if method == &quot;neyman&quot;
+replace order = 6 if method == &quot;power&quot;
+replace order = 7 if method == &quot;cost&quot;
+replace order = 8 if method == &quot;cost_floor&quot;
+replace order = 9 if method == &quot;cluster&quot;
+replace order = 10 if method == &quot;twostage&quot;
+sort order
+forvalues i = 1/`=_N&#39; {
+    file write html &quot;&lt;tr&gt;&lt;td&gt;&quot; (method[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected1[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected2[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected3[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected4[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected5[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (total[`i&#39;]) &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n
+}
+file write html &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n</pre></div><div class='output'><p>Reshapes the stratum count results and writes the selected-units-by-stratum table into the HTML report.</p></div></section>
+<section class='cell'><div class='prompt'>In [27]:</div><div class='input'><h3>Write Survey Declaration and Quality Check Cells</h3><pre>* Survey declaration section
+file write html &quot;&lt;h2&gt;5. Survey Declaration Example&lt;/h2&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;In [5]:&lt;/div&gt;&lt;div class=&#39;input&#39;&gt;&lt;pre&gt;use &quot;&quot;output/sampling_frame_with_flags.dta&quot;&quot;, clear&quot; _n
+file write html &quot;svyset pop_id [pweight = weight_prop], strata(stratum)&quot; _n
+file write html &quot;svy, subpop(sample_prop): mean income consumption&lt;/pre&gt;&lt;/div&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;output&#39;&gt;&lt;p&gt;The proportional stratified sample is declared with unit identifier &lt;code&gt;pop_id&lt;/code&gt;, stratum variable &lt;code&gt;stratum&lt;/code&gt;, and design weight &lt;code&gt;N_h / n_prop&lt;/code&gt;. The same pattern can be applied to the other stratified allocation examples by replacing &lt;code&gt;weight_prop&lt;/code&gt;.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n
+
+file write html &quot;&lt;h2&gt;6. Quality Checks&lt;/h2&gt;&quot; _n
+file write html &quot;&lt;div class=&#39;note&#39;&gt;All allocation columns in &lt;code&gt;output/allocation_results.dta&lt;/code&gt; sum to &lt;code&gt;`n_total&#39;&lt;/code&gt;. The floor-adjusted cost allocation enforces &lt;code&gt;n_h &amp;gt;= `n_min&#39;&lt;/code&gt;. No stratum is over-allocated because every &lt;code&gt;n_h&lt;/code&gt; is less than its simulated population size.&lt;/div&gt;&quot; _n
+file write html &quot;&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;&quot; _n
+file close html</pre></div><div class='output'><p>Adds the svyset example, quality-check note, closes the main HTML notebook, and closes the file handle.</p></div></section>
+<section class='cell'><div class='prompt'>In [28]:</div><div class='input'><h3>Write Annotated Notebook Setup</h3><pre>local annotated_html &quot;output/sample_allocation_simulation_annotated.html&quot;
+file open ann using &quot;`annotated_html&#39;&quot;, write replace
+
+file write ann &quot;&lt;!doctype html&gt;&quot; _n
+file write ann &quot;&lt;html&gt;&lt;head&gt;&lt;meta charset=&#39;utf-8&#39;&gt;&lt;title&gt;Annotated Stata notebook&lt;/title&gt;&quot; _n
+file write ann &quot;&lt;style&gt;&quot; _n
+file write ann &quot;body{margin:0;background:#f5f6f8;color:#111827;font-family:-apple-system,BlinkMacSystemFont,&#39;Segoe UI&#39;,Arial,sans-serif;}&quot; _n
+file write ann &quot;.page{max-width:1220px;margin:0 auto;padding:28px 24px 64px;}&quot; _n
+file write ann &quot;h1{font-size:30px;margin:8px 0 8px;} h2{font-size:22px;margin:32px 0 10px;border-bottom:1px solid #d8dee9;padding-bottom:8px;}&quot; _n
+file write ann &quot;p{line-height:1.55;margin:8px 0 14px;} code,pre{font-family:Consolas,Menlo,monospace;} .note{background:#fff;border:1px solid #d8dee9;border-left:5px solid #4c78a8;border-radius:6px;padding:12px 14px;margin:14px 0;}&quot; _n
+file write ann &quot;.cell{background:#fff;border:1px solid #d8dee9;border-radius:6px;margin:16px 0 22px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04);}&quot; _n
+file write ann &quot;.prompt{float:left;width:82px;color:#2563eb;font-family:Consolas,Menlo,monospace;font-size:13px;padding:13px 0;text-align:right;}&quot; _n
+file write ann &quot;.input,.output{margin-left:96px;padding:12px 16px;border-left:1px solid #edf0f5;} .output{border-top:1px solid #edf0f5;background:#fcfcfd;}&quot; _n
+file write ann &quot;table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 10px;} th,td{border:1px solid #d8dee9;padding:7px 8px;text-align:right;vertical-align:top;} th{background:#eef2f7;font-weight:600;} td:first-child,th:first-child{text-align:left;}&quot; _n
+file write ann &quot;.source td:nth-child(1){width:54px;text-align:right;color:#6b7280;} .source td:nth-child(2){width:52%;text-align:left;background:#fbfdff;} .source td:nth-child(3){text-align:left;} .source code{white-space:pre-wrap;}&quot; _n
+file write ann &quot;&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;main class=&#39;page&#39;&gt;&quot; _n
+file write ann &quot;&lt;h1&gt;Annotated Notebook: &lt;code&gt;sample_allocation_simulation.do&lt;/code&gt;&lt;/h1&gt;&quot; _n
+file write ann &quot;&lt;p&gt;This file presents the complete Stata program line by line. The right-hand column explains what each command or comment contributes to the simulation, allocation, sampling, result-building, or HTML-writing workflow.&lt;/p&gt;&quot; _n
+file write ann &quot;&lt;div class=&#39;note&#39;&gt;&lt;strong&gt;Main outputs:&lt;/strong&gt; &lt;code&gt;output/simulated_population_300000.dta&lt;/code&gt;, &lt;code&gt;output/allocation_results.dta&lt;/code&gt;, &lt;code&gt;output/sampling_frame_with_flags.dta&lt;/code&gt;, &lt;code&gt;output/sampling_examples_notebook.html&lt;/code&gt;, and this annotated notebook.&lt;/div&gt;&quot; _n
+
+file write ann &quot;&lt;h2&gt;1. Complete Annotated Source Code&lt;/h2&gt;&quot; _n
+file write ann &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;In [1]:&lt;/div&gt;&lt;div class=&#39;input&#39;&gt;&lt;table class=&#39;source&#39;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Line&lt;/th&gt;&lt;th&gt;Stata code&lt;/th&gt;&lt;th&gt;Explanation&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n</pre></div><div class='output'><p>Starts the secondary annotated HTML notebook, writes its page styling, heading, and source-code table header.</p></div></section>
+<section class='cell'><div class='prompt'>In [29]:</div><div class='input'><h3>Read Source Code and Generate Annotation Rows</h3><pre>file open src using &quot;sample_allocation_simulation.do&quot;, read
+local line_no = 0
+file read src source_line
+while r(eof) == 0 {
+    local ++line_no
+    local code `&quot;`macval(source_line)&#39;&quot;&#39;
+    local shown `&quot;`macval(code)&#39;&quot;&#39;
+    local shown : subinstr local shown &quot;&amp;&quot; &quot;&amp;amp;&quot;, all
+    local shown : subinstr local shown &quot;&lt;&quot; &quot;&amp;lt;&quot;, all
+    local shown : subinstr local shown &quot;&gt;&quot; &quot;&amp;gt;&quot;, all
+    local shown : subinstr local shown `&quot;&quot;&quot;&#39; &quot;&amp;quot;&quot;, all
+
+    local t = strtrim(`&quot;`macval(code)&#39;&quot;&#39;)
+    local tmatch `&quot;`macval(t)&#39;&quot;&#39;
+    local tmatch : subinstr local tmatch &quot;`&quot; &quot;&quot;, all
+    local tmatch : subinstr local tmatch &quot;&#39;&quot; &quot;&quot;, all
+    if strpos(`&quot;`tmatch&#39;&quot;&#39;, &quot;STEP 6. Write a detailed annotated-source notebook&quot;) &gt; 0 {
+        file write ann &quot;&lt;tr&gt;&lt;td&gt;&quot; %5.0f (`line_no&#39;) &quot;&lt;/td&gt;&lt;td&gt;&lt;code&gt;&quot; `&quot;`macval(shown)&#39;&quot;&#39; &quot;&lt;/code&gt;&lt;/td&gt;&lt;td&gt;This starts the notebook generator block. The analytical workflow above is annotated line by line; the result tables below document the outputs generated by the full do-file.&lt;/td&gt;&lt;/tr&gt;&quot; _n
+        continue, break
+    }
+    local explain &quot;This line is part of the Stata workflow.&quot;
+    if `&quot;`tmatch&#39;&quot;&#39; == &quot;&quot; local explain &quot;Blank line used to separate logical blocks and make the program easier to read.&quot;
+    else if substr(`&quot;`tmatch&#39;&quot;&#39;,1,1) == &quot;*&quot; local explain &quot;Comment line. It documents the purpose, section, or reasoning without changing the data.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^version &quot;) local explain &quot;Locks the script to a Stata version so command behavior is reproducible.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^clear&quot;) local explain &quot;Clears the data currently in memory before starting a new step.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^set more off&quot;) local explain &quot;Prevents Stata from pausing output during batch execution.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^set seed&quot;) local explain &quot;Sets the random-number seed so the simulated population and samples are reproducible.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^capture mkdir&quot;) local explain &quot;Creates the output folder if it does not already exist.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^local &quot;) local explain &quot;Defines a local macro used as a parameter or temporary value in later commands.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^global &quot;) local explain &quot;Defines a global macro. This program mainly uses local macros to keep scope controlled.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^capture program drop&quot;) local explain &quot;Removes any old copy of the helper program so it can be redefined cleanly.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^program define&quot;) local explain &quot;Starts a reusable Stata helper program.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^syntax &quot;) local explain &quot;Declares the required arguments and options for the helper program.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^tempvar &quot;) local explain &quot;Creates temporary variable names that will not conflict with variables already in the data.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^quietly&quot;) local explain &quot;Runs the command while suppressing routine output.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^gen |^generate &quot;) local explain &quot;Creates a new variable used in the simulation, allocation, sampling, weighting, or reporting step.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^replace &quot;) local explain &quot;Updates values in an existing variable for observations that meet the stated condition.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^summarize &quot;) local explain &quot;Calculates summary statistics; the script often reads totals or means from returned results.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^assert &quot;) local explain &quot;Checks an expected condition and stops the script if it is false.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^input &quot;) local explain &quot;Begins inline data entry for the five stratum-level design records.&quot;
+    else if `&quot;`tmatch&#39;&quot;&#39; == &quot;end&quot; local explain &quot;Closes an input block, program definition, or loop block depending on context.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^expand &quot;) local explain &quot;Expands stratum records into individual population units.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^bysort &quot;) local explain &quot;Sorts within groups and runs the following command separately inside each group.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^egen &quot;) local explain &quot;Uses Stata extended generate functions for grouped identifiers, ranks, totals, or row calculations.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^order &quot;) local explain &quot;Reorders variables in the dataset for easier inspection.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^label var &quot;) local explain &quot;Adds a readable variable label for documentation.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^compress&quot;) local explain &quot;Reduces storage size by using the smallest safe storage types.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^save &quot;) local explain &quot;Writes the current dataset to disk.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^preserve&quot;) local explain &quot;Temporarily saves the current dataset state before making a derived table.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^restore&quot;) local explain &quot;Returns to the dataset state saved by preserve.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^keep &quot;) local explain &quot;Keeps only the variables or observations needed for the next step.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^duplicates drop&quot;) local explain &quot;Reduces repeated records to one unique record, such as one row per stratum or PSU.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^sort &quot;) local explain &quot;Sorts the data to control order before ranking, sampling, or display.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^largest_remainder&quot;) local explain &quot;Calls the helper program that converts raw decimal allocations into integer allocations summing exactly to n.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^foreach &quot;) local explain &quot;Starts a loop over a list of sampling or allocation methods.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^forvalues &quot;) local explain &quot;Starts a numeric loop, here mainly for stratum numbers or table rows.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^while &quot;) local explain &quot;Starts an iterative loop that repeats until a convergence condition is met.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^if &quot;) local explain &quot;Runs the command only when the stated condition is true.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^count&quot;) local explain &quot;Counts observations that satisfy a condition and stores the result in r(N).&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^use &quot;) local explain &quot;Loads a Stata dataset from disk into memory.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^merge &quot;) local explain &quot;Joins allocation or PSU-selection information onto the population frame.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^tempfile &quot;) local explain &quot;Creates a temporary file path that Stata will manage during this run.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^postfile &quot;) local explain &quot;Opens a temporary results dataset that will be filled row by row.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^post &quot;) local explain &quot;Writes one row of calculated results into a postfile results dataset.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^postclose &quot;) local explain &quot;Closes the postfile so the temporary results dataset can be used.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^collapse &quot;) local explain &quot;Aggregates the unit-level data into summary statistics by stratum.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^levelsof &quot;) local explain &quot;Extracts distinct values from a variable into a local macro.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^reshape &quot;) local explain &quot;Reshapes long result data into wide form for a compact HTML table.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^svyset &quot;) local explain &quot;Declares the survey design variables: unit identifier, weights, and strata.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^file open &quot;) local explain &quot;Opens a text or HTML file for reading or writing.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^file write &quot;) local explain &quot;Writes HTML, text, or table rows to an output file.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^file read &quot;) local explain &quot;Reads one line from a text file into a local macro.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^file close &quot;) local explain &quot;Closes an open file handle after reading or writing is complete.&quot;
+    else if regexm(`&quot;`tmatch&#39;&quot;&#39;,&quot;^display &quot;) local explain &quot;Prints a completion message to the Stata log.&quot;
+
+    local explain : subinstr local explain &quot;&amp;&quot; &quot;&amp;amp;&quot;, all
+    local explain : subinstr local explain &quot;&lt;&quot; &quot;&amp;lt;&quot;, all
+    local explain : subinstr local explain &quot;&gt;&quot; &quot;&amp;gt;&quot;, all
+    file write ann &quot;&lt;tr&gt;&lt;td&gt;&quot; %5.0f (`line_no&#39;) &quot;&lt;/td&gt;&lt;td&gt;&lt;code&gt;&quot; `&quot;`macval(shown)&#39;&quot;&#39; &quot;&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&quot; `&quot;`explain&#39;&quot;&#39; &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n
+
+    file read src source_line
+}
+file close src
+file write ann &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n</pre></div><div class='output'><p>Reads the do-file as text, escapes HTML-sensitive characters, assigns explanations to executable commands, and writes source rows into the annotated notebook.</p></div></section>
+<section class='cell'><div class='prompt'>In [30]:</div><div class='input'><h3>Append Result Tables to Annotated Notebook</h3><pre>file write ann &quot;&lt;h2&gt;2. Population Simulation Results&lt;/h2&gt;&quot; _n
+file write ann &quot;&lt;p&gt;The table below confirms that the simulated population has 300,000 rows distributed across the five guidebook strata.&lt;/p&gt;&quot; _n
+file write ann &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;Out [2]:&lt;/div&gt;&lt;div class=&#39;output&#39;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Stratum&lt;/th&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Population&lt;/th&gt;&lt;th&gt;Mean income&lt;/th&gt;&lt;th&gt;Income SD&lt;/th&gt;&lt;th&gt;Mean consumption&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n
+use `pop_summary&#39;, clear
+sort stratum
+forvalues i = 1/`=_N&#39; {
+    file write ann &quot;&lt;tr&gt;&lt;td&gt;&quot; %4.0f (stratum[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; (stratum_name[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (N[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (mean_income[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (sd_income[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (mean_consumption[`i&#39;]) &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n
+}
+file write ann &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n
+
+file write ann &quot;&lt;h2&gt;3. Allocation Results&lt;/h2&gt;&quot; _n
+file write ann &quot;&lt;p&gt;All allocation columns sum to the target sample size of &lt;code&gt;`n_total&#39;&lt;/code&gt;. The floor-adjusted cost method also enforces the minimum sample floor of &lt;code&gt;`n_min&#39;&lt;/code&gt;.&lt;/p&gt;&quot; _n
+file write ann &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;Out [3]:&lt;/div&gt;&lt;div class=&#39;output&#39;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Stratum&lt;/th&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Population&lt;/th&gt;&lt;th&gt;Equal&lt;/th&gt;&lt;th&gt;Proportional&lt;/th&gt;&lt;th&gt;Neyman&lt;/th&gt;&lt;th&gt;Power q=.5&lt;/th&gt;&lt;th&gt;Cost&lt;/th&gt;&lt;th&gt;Cost + floor&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n
+use &quot;output/allocation_results.dta&quot;, clear
+sort stratum
+forvalues i = 1/`=_N&#39; {
+    file write ann &quot;&lt;tr&gt;&lt;td&gt;&quot; %4.0f (stratum[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; (stratum_name[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (N_h[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_equal[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_prop[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_neyman[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_power[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_cost[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (n_cost_floor[`i&#39;]) &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n
+}
+file write ann &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n
+
+file write ann &quot;&lt;h2&gt;4. Sampling Result Summary&lt;/h2&gt;&quot; _n
+file write ann &quot;&lt;p&gt;The table reports selected sample size and income estimates for each example sampling method.&lt;/p&gt;&quot; _n
+file write ann &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;Out [4]:&lt;/div&gt;&lt;div class=&#39;output&#39;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Method&lt;/th&gt;&lt;th&gt;Selected n&lt;/th&gt;&lt;th&gt;Mean income&lt;/th&gt;&lt;th&gt;Weighted income&lt;/th&gt;&lt;th&gt;Min weight&lt;/th&gt;&lt;th&gt;Max weight&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n
+use `sample_summary&#39;, clear
+gen byte order = .
+replace order = 1 if method == &quot;srs&quot;
+replace order = 2 if method == &quot;systematic&quot;
+replace order = 3 if method == &quot;equal&quot;
+replace order = 4 if method == &quot;prop&quot;
+replace order = 5 if method == &quot;neyman&quot;
+replace order = 6 if method == &quot;power&quot;
+replace order = 7 if method == &quot;cost&quot;
+replace order = 8 if method == &quot;cost_floor&quot;
+replace order = 9 if method == &quot;cluster&quot;
+replace order = 10 if method == &quot;twostage&quot;
+sort order
+forvalues i = 1/`=_N&#39; {
+    file write ann &quot;&lt;tr&gt;&lt;td&gt;&quot; (method[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (mean_income[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %12.0fc (weighted_income[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %10.1fc (min_weight[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %10.1fc (max_weight[`i&#39;]) &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n
+}
+file write ann &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n
+
+file write ann &quot;&lt;h2&gt;5. Selected Units by Stratum&lt;/h2&gt;&quot; _n
+file write ann &quot;&lt;p&gt;This result table shows how each sampling method distributes selected units across strata.&lt;/p&gt;&quot; _n
+file write ann &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;Out [5]:&lt;/div&gt;&lt;div class=&#39;output&#39;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Method&lt;/th&gt;&lt;th&gt;Mountain Rural&lt;/th&gt;&lt;th&gt;Hill Rural&lt;/th&gt;&lt;th&gt;Hill Urban&lt;/th&gt;&lt;th&gt;Terai Rural&lt;/th&gt;&lt;th&gt;Terai Urban&lt;/th&gt;&lt;th&gt;Total&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&quot; _n
+use `sample_by_stratum&#39;, clear
+reshape wide selected, i(method) j(stratum)
+egen total = rowtotal(selected1 selected2 selected3 selected4 selected5)
+gen byte order = .
+replace order = 1 if method == &quot;srs&quot;
+replace order = 2 if method == &quot;systematic&quot;
+replace order = 3 if method == &quot;equal&quot;
+replace order = 4 if method == &quot;prop&quot;
+replace order = 5 if method == &quot;neyman&quot;
+replace order = 6 if method == &quot;power&quot;
+replace order = 7 if method == &quot;cost&quot;
+replace order = 8 if method == &quot;cost_floor&quot;
+replace order = 9 if method == &quot;cluster&quot;
+replace order = 10 if method == &quot;twostage&quot;
+sort order
+forvalues i = 1/`=_N&#39; {
+    file write ann &quot;&lt;tr&gt;&lt;td&gt;&quot; (method[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected1[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected2[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected3[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected4[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (selected5[`i&#39;]) &quot;&lt;/td&gt;&lt;td&gt;&quot; %8.0fc (total[`i&#39;]) &quot;&lt;/td&gt;&lt;/tr&gt;&quot; _n
+}
+file write ann &quot;&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n
+
+file write ann &quot;&lt;h2&gt;6. Survey Design Declaration&lt;/h2&gt;&quot; _n
+file write ann &quot;&lt;div class=&#39;cell&#39;&gt;&lt;div class=&#39;prompt&#39;&gt;In [6]:&lt;/div&gt;&lt;div class=&#39;input&#39;&gt;&lt;pre&gt;svyset pop_id [pweight = weight_prop], strata(stratum)&quot; _n
+file write ann &quot;svy, subpop(sample_prop): mean income consumption&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#39;output&#39;&gt;&lt;p&gt;The proportional sample can be analyzed with Stata survey commands after declaring &lt;code&gt;pop_id&lt;/code&gt; as the unit identifier, &lt;code&gt;weight_prop&lt;/code&gt; as the probability weight, and &lt;code&gt;stratum&lt;/code&gt; as the stratification variable.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&quot; _n
+file write ann &quot;&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;&quot; _n
+file close ann</pre></div><div class='output'><p>Repeats the population, allocation, sampling, stratum-count, and survey-declaration results in the annotated notebook, then closes the file.</p></div></section>
+<section class='cell'><div class='prompt'>In [31]:</div><div class='input'><h3>Print Completion Messages</h3><pre>display as text &quot;Done. Created:&quot;
+display as result &quot;  output/simulated_population_300000.dta&quot;
+display as result &quot;  output/allocation_results.dta&quot;
+display as result &quot;  output/sampling_frame_with_flags.dta&quot;
+display as result &quot;  output/sampling_examples_notebook.html&quot;
+display as result &quot;  output/sample_allocation_simulation_annotated.html&quot;</pre></div><div class='output'><p>Displays the generated output file paths in the Stata log.</p></div></section>
+
+<h2>2. Population Simulation Results</h2>
+<p>The table below confirms that the simulated population has 300,000 rows distributed across the five guidebook strata.</p>
+<div class='cell'><div class='prompt'>Out [2]:</div><div class='output'><table><thead><tr><th>Stratum</th><th>Name</th><th>Population</th><th>Mean income</th><th>Income SD</th><th>Mean consumption</th></tr></thead><tbody>
+<tr><td>   1</td><td>Mountain Rural</td><td>      12,632</td><td>      28,352</td><td>      11,833</td><td>      34,116</td></tr>
+<tr><td>   2</td><td>Hill Rural</td><td>      53,684</td><td>      34,212</td><td>      14,620</td><td>      37,633</td></tr>
+<tr><td>   3</td><td>Hill Urban</td><td>      41,053</td><td>      52,185</td><td>      21,539</td><td>      50,590</td></tr>
+<tr><td>   4</td><td>Terai Rural</td><td>     123,158</td><td>      40,194</td><td>      17,494</td><td>      41,935</td></tr>
+<tr><td>   5</td><td>Terai Urban</td><td>      69,473</td><td>      65,102</td><td>      27,644</td><td>      59,884</td></tr>
+</tbody></table></div></div>
+<h2>3. Allocation Results</h2>
+<p>All allocation columns sum to the target sample size of <code>1200</code>. The floor-adjusted cost method also enforces the minimum sample floor of <code>30</code>.</p>
+<div class='cell'><div class='prompt'>Out [3]:</div><div class='output'><table><thead><tr><th>Stratum</th><th>Name</th><th>Population</th><th>Equal</th><th>Proportional</th><th>Neyman</th><th>Power q=.5</th><th>Cost</th><th>Cost + floor</th></tr></thead><tbody>
+<tr><td>   1</td><td>Mountain Rural</td><td>      12,632</td><td>     240</td><td>      50</td><td>      30</td><td>     116</td><td>      17</td><td>      30</td></tr>
+<tr><td>   2</td><td>Hill Rural</td><td>      53,684</td><td>     240</td><td>     215</td><td>     160</td><td>     240</td><td>     129</td><td>     127</td></tr>
+<tr><td>   3</td><td>Hill Urban</td><td>      41,053</td><td>     240</td><td>     164</td><td>     180</td><td>     209</td><td>     167</td><td>     165</td></tr>
+<tr><td>   4</td><td>Terai Rural</td><td>     123,158</td><td>     240</td><td>     493</td><td>     442</td><td>     363</td><td>     448</td><td>     443</td></tr>
+<tr><td>   5</td><td>Terai Urban</td><td>      69,473</td><td>     240</td><td>     278</td><td>     388</td><td>     272</td><td>     439</td><td>     435</td></tr>
+</tbody></table></div></div>
+<h2>4. Sampling Result Summary</h2>
+<p>The table reports selected sample size and income estimates for each example sampling method.</p>
+<div class='cell'><div class='prompt'>Out [4]:</div><div class='output'><table><thead><tr><th>Method</th><th>Selected n</th><th>Mean income</th><th>Weighted income</th><th>Min weight</th><th>Max weight</th></tr></thead><tbody>
+<tr><td>srs</td><td>   1,200</td><td>      45,894</td><td>           .</td><td>         .</td><td>         .</td></tr>
+<tr><td>systematic</td><td>   1,200</td><td>      45,406</td><td>           .</td><td>         .</td><td>         .</td></tr>
+<tr><td>equal</td><td>   1,200</td><td>      44,239</td><td>      46,346</td><td>      52.6</td><td>     513.2</td></tr>
+<tr><td>prop</td><td>   1,200</td><td>      45,215</td><td>      45,211</td><td>     249.7</td><td>     252.6</td></tr>
+<tr><td>neyman</td><td>   1,200</td><td>      48,531</td><td>      45,547</td><td>     179.1</td><td>     421.1</td></tr>
+<tr><td>power</td><td>   1,200</td><td>      45,330</td><td>      45,771</td><td>     108.9</td><td>     339.3</td></tr>
+<tr><td>cost</td><td>   1,200</td><td>      50,339</td><td>      46,072</td><td>     158.3</td><td>     743.1</td></tr>
+<tr><td>cost_floor</td><td>   1,200</td><td>      49,562</td><td>      45,887</td><td>     159.7</td><td>     422.7</td></tr>
+<tr><td>cluster</td><td>   1,200</td><td>      38,368</td><td>           .</td><td>         .</td><td>         .</td></tr>
+<tr><td>twostage</td><td>   1,200</td><td>      49,282</td><td>           .</td><td>         .</td><td>         .</td></tr>
+</tbody></table></div></div>
+<h2>5. Selected Units by Stratum</h2>
+<p>This result table shows how each sampling method distributes selected units across strata.</p>
+<div class='cell'><div class='prompt'>Out [5]:</div><div class='output'><table><thead><tr><th>Method</th><th>Mountain Rural</th><th>Hill Rural</th><th>Hill Urban</th><th>Terai Rural</th><th>Terai Urban</th><th>Total</th></tr></thead><tbody>
+<tr><td>srs</td><td>      51</td><td>     225</td><td>     165</td><td>     500</td><td>     259</td><td>   1,200</td></tr>
+<tr><td>systematic</td><td>      51</td><td>     214</td><td>     164</td><td>     493</td><td>     278</td><td>   1,200</td></tr>
+<tr><td>equal</td><td>     240</td><td>     240</td><td>     240</td><td>     240</td><td>     240</td><td>   1,200</td></tr>
+<tr><td>prop</td><td>      50</td><td>     215</td><td>     164</td><td>     493</td><td>     278</td><td>   1,200</td></tr>
+<tr><td>neyman</td><td>      30</td><td>     160</td><td>     180</td><td>     442</td><td>     388</td><td>   1,200</td></tr>
+<tr><td>power</td><td>     116</td><td>     240</td><td>     209</td><td>     363</td><td>     272</td><td>   1,200</td></tr>
+<tr><td>cost</td><td>      17</td><td>     129</td><td>     167</td><td>     448</td><td>     439</td><td>   1,200</td></tr>
+<tr><td>cost_floor</td><td>      30</td><td>     127</td><td>     165</td><td>     443</td><td>     435</td><td>   1,200</td></tr>
+<tr><td>cluster</td><td>     100</td><td>     250</td><td>      50</td><td>     750</td><td>      50</td><td>   1,200</td></tr>
+<tr><td>twostage</td><td>      30</td><td>     240</td><td>     130</td><td>     430</td><td>     370</td><td>   1,200</td></tr>
+</tbody></table></div></div>
+<h2>6. Survey Design Declaration</h2>
+<div class='cell'><div class='prompt'>In [6]:</div><div class='input'><pre>svyset pop_id [pweight = weight_prop], strata(stratum)
+svy, subpop(sample_prop): mean income consumption</pre></div><div class='output'><p>The proportional sample can be analyzed with Stata survey commands after declaring <code>pop_id</code> as the unit identifier, <code>weight_prop</code> as the probability weight, and <code>stratum</code> as the stratification variable.</p></div></div>
+
+
+</main></body></html>

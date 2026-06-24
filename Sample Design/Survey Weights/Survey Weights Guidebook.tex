@@ -1,0 +1,1193 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- UNIVERSAL PREAMBLE BLOCK ---
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.2cm, right=2.2cm]{geometry}
+\usepackage{fontspec}
+
+\usepackage[english, bidi=basic, provide=*]{babel}
+\babelprovide[import, onchar=ids fonts]{english}
+
+% Set default/Latin font to Sans Serif in the main (rm) slot
+\babelfont{rm}{Noto Sans}
+\babelfont{sf}{Noto Sans}
+\babelfont{tt}{Noto Mono}
+
+% --- CORE PACKAGES ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{microtype}
+\usepackage{tabularx} % Added for robust margin wrapping of tables
+
+% --- STYLING & COLORS ---
+\definecolor{primary}{HTML}{1A365D}     % Deep Slate Blue
+\definecolor{secondary}{HTML}{0D9488}   % Teal
+\definecolor{accent}{HTML}{64748B}      % Slate Gray
+\definecolor{codebg}{HTML}{F8FAFC}      % Code block background
+\definecolor{boxbg}{HTML}{F0FDFA}       % Key Takeaway background
+\definecolor{diagbg}{HTML}{F8FAFC}      % Diagnostic Check background
+
+\setstretch{1.15} % Slight breathing room for sans-serif text
+
+% --- HEADERS & FOOTERS ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\color{accent}\sffamily\small Survey Weights \& Calibration Guide}
+\fancyhead[R]{\color{accent}\sffamily\small Dr. Anil Shrestha --- Session 2}
+\fancyfoot[C]{\color{accent}\sffamily\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\addtolength{\headheight}{2pt}
+
+% --- SECTION FORMATTING ---
+\titleformat{\section}
+  {\color{primary}\normalfont\Large\bfseries}
+  {\thesection}{1em}{}[{\titlerule[1pt]}]
+\titleformat{\subsection}
+  {\color{secondary}\normalfont\large\bfseries}
+  {\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\color{primary}\normalfont\normalsize\bfseries\itshape}
+  {\thesubsubsection}{1em}{}
+
+% --- LISTINGS CONFIGURATION ---
+\lstdefinestyle{stata}{
+  basicstyle=\ttfamily\small,
+  breakatwhitespace=false,
+  breaklines=true,
+  commentstyle=\color{accent}\itshape,
+  keepspaces=true,
+  keywordstyle=\color{primary}\bfseries,
+  morekeywords={gen,egen,replace,sum,summarize,svyset,svy,mean,total,proportion,tabulate,regress,keep,drop,cond,bysort,ipfraking,display,use,clear,hist,_pctile,logit,predict},
+  numbers=left,
+  numberstyle=\tiny\color{accent},
+  stepnumber=1,
+  numbersep=8pt,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  frameround=tttt,
+  framesep=6pt,
+  rulecolor=\color{accent},
+  tabsize=4,
+  showstringspaces=false
+}
+
+\lstdefinestyle{excel}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  commentstyle=\color{accent}\itshape,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  frameround=tttt,
+  framesep=6pt,
+  rulecolor=\color{accent},
+  tabsize=4,
+  showstringspaces=false
+}
+
+% --- CUSTOM COLOR BOXES & ENVIRONMENTS ---
+\newtcolorbox{keytakeaway}[1][Key Thing to Hold Onto]{
+  colback=boxbg,
+  colframe=secondary,
+  fonttitle=\sffamily\bfseries,
+  coltitle=white,
+  title=#1,
+  arc=4pt,
+  boxrule=1pt,
+  left=10pt,
+  right=10pt,
+  top=8pt,
+  bottom=8pt
+}
+
+\newtcolorbox{diagnosticbox}[1][Diagnostic Alert]{
+  colback=diagbg,
+  colframe=primary,
+  fonttitle=\sffamily\bfseries,
+  coltitle=white,
+  title=#1,
+  arc=4pt,
+  boxrule=1pt,
+  left=10pt,
+  right=10pt,
+  top=8pt,
+  bottom=8pt
+}
+
+% Define the custom example environment cleanly
+\newenvironment{example}
+  {\par\vspace{0.5em}\noindent\textbf{\color{primary}Example:}\space}
+  {\par\vspace{0.5em}}
+
+% --- HYPERREF (Must be last) ---
+\usepackage[colorlinks=true, linkcolor=primary, urlcolor=secondary]{hyperref}
+
+% ------------------------------------------------------------------
+\begin{document}
+
+% --- TITLE PAGE ---
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Huge\bfseries\color{primary} Survey Weights, Post-Stratification, and Weight Adjustment\par}
+  \vspace{0.8cm}
+  {\Large\bfseries\color{secondary} A Comprehensive Deep-Dive Learning Guide and Reference Manual\par}
+  \vspace{0.5cm}
+  {\large Prepared for Training Participants and Survey Practitioners\par}
+  \vspace{1.5cm}
+  \rule{\textwidth}{1.5pt}\par
+  \vspace{1.5cm}
+  {\large\bfseries Course Instructor:\par}
+  {\Large\bfseries\color{primary} Dr. Anil Shrestha\par}
+  \vspace{1.5cm}
+  {\large\itshape Session 2: Weights Theory and Calculation using Stata \& Excel\par}
+  \vfill
+  {\large Issued: June 2026\par}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ------------------------------------------------------------------
+\section*{Learning Roadmap Overview}
+\addcontentsline{toc}{section}{Learning Roadmap Overview}
+This guide is designed as a deep-dive manual to build a rigorous, intuitive, and practical understanding of survey weights, post-stratification, and calibration adjustments. It follows a structured, step-by-step learning progression:
+
+\begin{description}
+  \item[Step 1 --- Why Do We Need Weights?] Understand the core selection problems and non-response errors that weights solve, and why ignoring them biases estimates.
+  \item[Step 2 --- Design Weights] Learn how design weights are constructed from inclusion probabilities across simple random, stratified, and cluster sampling.
+  \item[Step 3 --- Non-Response Adjustment] Compensate for missed interviews systematically using adjustment cells and response propensity models.
+  \item[Step 4 --- Post-Stratification] Anchor survey results to known external census distributions (such as age, sex, and geography).
+  \item[Step 5 --- Weight Adjustment \& Calibration (Raking)] Calibrate weights to multiple marginal population totals simultaneously using Iterative Proportional Fitting.
+  \item[Step 6 --- Implementing Weights in Stata \& Excel] Apply, declare, and execute complex survey weight pipelines using real workflows.
+  \item[Step 7 --- Diagnostics, Edge Cases, \& Common Mistakes] Troubleshoot and validate weight profiles (trimming, effective sample sizes, and auditing checklists).
+\end{description}
+
+\newpage
+
+% ------------------------------------------------------------------
+\section{Why Do We Need Weights? (The Core Intuition)}
+
+\subsection{The Core Problem: Unequal Selection Probabilities}
+In survey research, especially when conducted by national statistical organizations like Nepal's National Statistics Office (NSO), not every member of the population has an equal chance of selection. 
+
+For instance, suppose the NSO conducts a national household survey. To guarantee reliable geographical representation, households in remote, sparsely populated mountain districts (e.g., Humla) are sampled at higher rates than households in highly populated urban centers (e.g., Kathmandu). 
+
+If you treat every sampled household as equally representative when computing national averages, you will \textbf{over-represent} the mountain population and \textbf{under-represent} the urban population. Consequently, national indicators (such as average household income or poverty rates) will be significantly biased.
+
+Survey weights resolve this issue by acting as \textbf{multiplication factors}. They indicate how many population units a single sampled unit represents.
+\begin{quote}
+  \textit{"This household from Humla represents only 175 households in the population, while this Kathmandu household represents 600 households."}
+\end{quote}
+
+\subsection{Sources of Sample Imbalance}
+There are three primary reasons why a sample deviates from the target population's characteristics. Each has a specific remedy in the weight-construction pipeline:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Sources of Sample Imbalance and Redress Methods}
+  \label{tab:sources_imbalance}
+  \begin{tabularx}{\textwidth}{lXX}
+    \toprule
+    \textbf{Source of Imbalance} & \textbf{What Happens in the Field} & \textbf{Methodological Remedy} \\
+    \midrule
+    Unequal selection probability & Some units are sampled more often by design & Design weights \\
+    Non-response & Some selected units refuse or cannot be reached & Non-response adjustment \\
+    Sample-population mismatch & Achieved sample demographics differ from census & Post-stratification / Raking \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{The Weight as a "Multiplication Factor"}
+The weight $w_i$ attached to unit $i$ defines the number of elements in the target population represented by this specific respondent. If a household has a weight $w_i = 500$, it signifies: \textit{"Count this household as 500 households in the target population."}
+
+The weighted mean ($\bar{Y}_w$) is computed as:
+\begin{equation}
+  \bar{Y}_w = \frac{\sum_{i=1}^{n} w_i \cdot Y_i}{\sum_{i=1}^{n} w_i}
+\end{equation}
+Where:
+\begin{itemize}
+  \item $Y_i$ is the surveyed value of interest for respondent $i$ (e.g., monthly income).
+  \item $w_i$ is the final weight of respondent $i$.
+  \item The denominator $\sum_{i=1}^{n} w_i$ sums all weights, which should approximate the total target population size ($N$).
+\end{itemize}
+
+\subsection{Worked Numerical Example}
+Consider a stylized sample of $n = 4$ households selected from two districts in Nepal:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Sample Data for Weighted Mean Calculation}
+  \label{tab:simple_example}
+  \begin{tabular}{llrr}
+    \toprule
+    \textbf{Household} & \textbf{District} & \textbf{Monthly Income (NPR)} & \textbf{Weight ($w_i$)} \\
+    \midrule
+    A & Kathmandu & 80,000 & 120 \\
+    B & Kathmandu & 60,000 & 120 \\
+    C & Humla & 20,000 & 850 \\
+    D & Humla & 25,000 & 850 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsubsection{Unweighted Mean (Methodologically Incorrect)}
+Ignoring selection weights treats every household as representing the same portion of the population:
+\[
+  \bar{Y}_{\text{unweighted}} = \frac{80,000 + 60,000 + 20,000 + 25,000}{4} = 46,250 \text{ NPR}
+\]
+
+\subsubsection{Weighted Mean (Correct)}
+Applying the weights according to Equation (1):
+\[
+  \bar{Y}_w = \frac{(120 \times 80,000) + (120 \times 60,000) + (850 \times 20,000) + (850 \times 25,000)}{120 + 120 + 850 + 850}
+\]
+\[
+  \bar{Y}_w = \frac{9,600,000 + 7,200,000 + 17,000,000 + 21,250,000}{1,940} = \frac{55,050,000}{1,940} \approx 28,376.29 \text{ NPR}
+\]
+\textbf{Analysis:} The unweighted mean is severely biased upward (46,250 NPR) because it over-represents high-income Kathmandu households. The weighted mean (28,376 NPR) correctly downweights the Kathmandu oversample to match the true population profile where Humla-like rural structures are numerically dominant.
+
+\subsection{Policy Implications}
+If CBS publishes the unweighted figure, policymakers will dramatically overestimate living standards. Social protection thresholds, budget allocations, and poverty interventions will target incorrect thresholds. This illustrates that survey weights are not a secondary technicality; they are vital for policy relevance and statistical integrity.
+
+\begin{keytakeaway}
+A survey weight tells you how many population units a sampled unit represents. Weighted estimates correct for design-driven unequal selection, non-response, and residual mismatches. Never analyze representative survey datasets without applying weights.
+\end{keytakeaway}
+
+\newpage
+
+% ------------------------------------------------------------------
+\section{Design Weights: Sampling Probability to Basic Weights}
+
+\subsection{The Fundamental Reciprocal Rule}
+The \textbf{design weight} ($w_i^{\text{design}}$) is the inverse of the inclusion probability ($\pi_i$). The inclusion probability is the probability that unit $i$ is selected into the sample:
+\begin{equation}
+  w_i^{\text{design}} = \frac{1}{\pi_i}
+\end{equation}
+If a household has a 1-in-500 chance of selection, its design weight is exactly 500.
+
+\subsection{Design 1: Simple Random Sampling (SRS)}
+In SRS, every unit in the population has an equal, non-zero probability of selection:
+\begin{equation}
+  \pi_i = \frac{n}{N} \implies w_i^{\text{design}} = \frac{N}{n}
+\end{equation}
+Where $n$ is sample size, and $N$ is population size.
+\begin{example}
+  If Nepal has $N = 6,000,000$ households and you draw $n = 12,000$ via SRS:
+  \[
+    w_i^{\text{design}} = \frac{6,000,000}{12,000} = 500 \quad \text{for all } i
+  \]
+  In SRS, weights are uniform; unweighted and weighted means yield identical point estimates.
+\end{example}
+
+\subsection{Design 2: Stratified Random Sampling}
+In stratified sampling, the population is partitioned into mutually exclusive subpopulations called \textit{strata} (e.g., ecological zones, provinces), and an independent SRS is drawn from each stratum $h$:
+\begin{equation}
+  \pi_{ih} = \frac{n_h}{N_h} \implies w_{ih} = \frac{N_h}{n_h}
+\end{equation}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Worked Example --- Stratified Sampling (Nepal NLSS Style)}
+  \label{tab:stratified_example}
+  \begin{tabular}{llrr}
+    \toprule
+    \textbf{Stratum ($h$)} & \textbf{Population ($N_h$)} & \textbf{Sample Size ($n_h$)} & \textbf{Design Weight ($w_{ih} = N_h / n_h$)} \\
+    \midrule
+    Urban & 1,800,000 & 3,000 & 600.00 \\
+    Rural Hills & 2,500,000 & 5,000 & 500.00 \\
+    Rural Mountains & 700,000 & 4,000 & 175.00 \\
+    \midrule
+    \textbf{Total} & \textbf{5,000,000} & \textbf{12,000} & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\textbf{Interpretation:} Rural Mountains are oversampled by design (4,000 out of 700,000 = 0.57\%) compared to Urban areas (3,000 out of 1,800,000 = 0.17\%) to ensure adequate sample size for precise localized estimates. The design weights correct for this imbalance, dropping from 600 for Urban units to 175 for Rural Mountain units.
+
+\subsection{Design 3: Two-Stage Cluster Sampling}
+This is the standard design utilized in large-scale household surveys (e.g., NLSS, NLFS, NMICS, DHS).
+\begin{itemize}
+  \item \textbf{Stage 1:} Select $m$ Primary Sampling Units (PSUs, such as wards or enumeration areas) with Probability Proportional to Size (PPS).
+  \item \textbf{Stage 2:} Select $n_{\text{PSU}}$ households within each selected PSU using SRS.
+\end{itemize}
+
+The combined probability of selection is the product of the probabilities at both stages:
+\begin{equation}
+  \pi_i = \pi_{\text{PSU}} \times \pi_{\text{HH}\mid\text{PSU}}
+\end{equation}
+
+\textbf{Stage 1: PSU Selection (PPS):}
+\begin{equation}
+  \pi_{\text{PSU}} = \frac{m \times M_{\text{PSU}}}{M_{\text{total}}}
+\end{equation}
+Where $M_{\text{PSU}}$ is the measure of size (e.g., household count from census) of the selected PSU, and $M_{\text{total}}$ is the total household count in the stratum.
+
+\textbf{Stage 2: Household Selection (SRS):}
+\begin{equation}
+  \pi_{\text{HH}\mid\text{PSU}} = \frac{n_{\text{PSU}}}{M_{\text{PSU}}}
+\end{equation}
+Where $n_{\text{PSU}}$ is the number of households sampled from that PSU.
+
+\textbf{Combined Design Weight:}
+\begin{equation}
+  w_i = \frac{1}{\pi_{\text{PSU}} \times \pi_{\text{HH}\mid\text{PSU}}} = \frac{M_{\text{total}}}{m \times M_{\text{PSU}}} \times \frac{M_{\text{PSU}}}{n_{\text{PSU}}} = \frac{M_{\text{total}}}{m \times n_{\text{PSU}}}
+\end{equation}
+Notice how the PSU measure of size ($M_{\text{PSU}}$) cancels out of the weight equation.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Worked Example --- Two-Stage Cluster Parameters}
+  \label{tab:cluster_example}
+  \begin{tabular}{lr}
+    \toprule
+    \textbf{Component} & \textbf{Value} \\
+    \midrule
+    Total Households in Stratum ($M_{\text{total}}$) & 500,000 \\
+    PSUs Selected ($m$) & 50 \\
+    Households in Specific PSU ($M_{\text{PSU}}$) & 200 \\
+    Households Sampled in PSU ($n_{\text{PSU}}$) & 20 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\textbf{Inclusion Calculations:}
+\[
+  \pi_{\text{PSU}} = \frac{50 \times 200}{500,000} = 0.02
+\]
+\[
+  \pi_{\text{HH}\mid\text{PSU}} = \frac{20}{200} = 0.10
+\]
+\[
+  \pi_i = 0.02 \times 0.10 = 0.002 \implies w_i^{\text{design}} = \frac{1}{0.002} = 500
+\]
+
+\newpage
+
+\subsection{Stata Code: Design Weight Construction}
+Below is the standard programmatic sequence to compute design weights and declare the survey structure in Stata:
+
+\begin{lstlisting}[style=stata, caption={Computing and Declaring Design Weights in Stata}]
+* Assume raw dataset contains: stratum, psu, prob_psu, prob_hh_given_psu
+* Step 1: Compute overall inclusion probability
+gen pi_i = prob_psu * prob_hh_given_psu
+
+* Step 2: Compute design weight
+gen wt_design = 1 / pi_i
+
+* Step 3: Sanity check (sum of weights should approximate N)
+summarize wt_design
+display "Sum of weights: " r(sum)
+
+* Step 4: Declare complex survey design to Stata
+svyset psu [pweight = wt_design], strata(stratum) vce(linearized)
+
+* Step 5: Execute design-weighted analysis
+svy: mean income
+svy: total poor
+\end{lstlisting}
+
+\subsection{Excel Method: Design Weight Construction}
+For Stratified Random Sampling, structure your sheets as follows:
+\begin{lstlisting}[style=excel, caption={Excel Formulas for Stratified Weights}]
+Column A: HH_ID
+Column B: Stratum
+Column C: N_h (Population Size)
+Column D: n_h (Sample Size)
+Column E: Weight -> Formula: =C2/D2
+\end{lstlisting}
+
+For Two-Stage Cluster Sampling:
+\begin{lstlisting}[style=excel, caption={Excel Formulas for Two-Stage Cluster Weights}]
+Column A: HH_ID
+Column B: prob_PSU
+Column C: prob_HH_given_PSU
+Column D: pi_overall -> Formula: =B2*C2
+Column E: wt_design  -> Formula: =1/D2
+\end{lstlisting}
+Weighted mean estimation can be verified in Excel using:
+\begin{lstlisting}[style=excel]
+=SUMPRODUCT(weight_range, income_range) / SUM(weight_range)
+\end{lstlisting}
+
+\subsection{Edge Cases to Watch}
+\begin{itemize}
+  \item \textbf{Self-Representing PSUs:} Very large urban wards may be selected with certainty ($\pi_{\text{PSU}} = 1$). Handle these as their own separate strata; otherwise, standard error calculations will be incorrect.
+  \item \textbf{Precision Limits:} Excel may suffer from floating point representation limitations when working with tiny select probabilities. Verify that $\sum w_i \approx N$.
+  \item \textbf{Normalised vs. Unnormalised Weights:} Some agencies provide weights scaled so they sum to the sample size ($n$) rather than the population size ($N$). While appropriate for means, normalized weights will yield highly incorrect totals (e.g., total poor).
+\end{itemize}
+
+\begin{keytakeaway}
+The design weight is the mathematical reciprocal of the selection probability. In multi-stage designs, construct the compound probability first, then take the reciprocal. In Stata, declare the structure with \texttt{svyset} before performing any descriptive or analytical command.
+\end{keytakeaway}
+
+\newpage
+
+% ------------------------------------------------------------------
+\section{Non-Response Adjustment}
+
+\subsection{The Threat of Non-Random Non-Response}
+Design weights assume perfect participation. In practice, selected units fail to participate due to refusals, structural absences, or language barriers. 
+
+If non-response were completely random (Missing Completely at Random, or MCAR), it would only reduce sample size and precision, without biasing point estimates. However, non-response is rarely random: wealthier urban families are more likely to refuse access, and highly mobile households are harder to contact. This produces \textbf{non-response bias}.
+
+To adjust, we inflate the weights of participating respondents within defined, homogeneous \textbf{adjustment cells} to compensate for non-participating units in those same cells.
+
+\subsection{The Non-Response Adjustment Factor}
+For each adjustment cell $c$:
+\begin{equation}
+  f_c^{\text{NR}} = \frac{\text{Number of sampled units in cell } c}{\text{Number of responding units in cell } c} = \frac{n_c}{r_c}
+\end{equation}
+The adjusted weight is then computed as:
+\begin{equation}
+  w_i^{\text{adjusted}} = w_i^{\text{design}} \times f_c^{\text{NR}}
+\end{equation}
+\textbf{Intuition:} If 100 households are sampled in a cell but only 80 respond, each respondent's weight is scaled by $100/80 = 1.25$. The participating units represent the non-responding units.
+
+\subsection{Defining Homogeneous Adjustment Cells}
+Adjustment cells are defined using auxiliary variables known for both respondents and non-respondents (often from sampling frames or interviewer observation sheets):
+
+\begin{table}[htbp]
+  \centering
+  \caption{Variables for Defining Non-Response Adjustment Cells}
+  \label{tab:nr_cells}
+  \begin{tabularx}{\textwidth}{lX}
+    \toprule
+    \textbf{Variable} & \textbf{Structural Justification} \\
+    \midrule
+    Stratum (Urban/Rural) & Response rates differ significantly by urbanicity \\
+    Province / District & Cultural and regional variations affect cooperative rates \\
+    PSU Type & Remoteness and security affect interviewer access \\
+    Household Size & Larger households are easier to find at home \\
+    Interviewer ID & Captures systemic variations in field-team efficacy \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{diagnosticbox}[Cell Sizing Rule]
+Each non-response adjustment cell must contain at least 20--30 respondents to avoid extreme, unstable inflation factors.
+\end{diagnosticbox}
+
+\newpage
+
+\subsection{Worked Non-Response Adjustment Example}
+Suppose fieldwork produces the following cell outcomes:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Field Outcomes and Non-Response Factors}
+  \label{tab:nr_worked_example}
+  \begin{tabular}{llrrrc}
+    \toprule
+    \textbf{Cell ($c$)} & \textbf{Stratum} & \textbf{Sampled ($n_c$)} & \textbf{Responded ($r_c$)} & \textbf{Response Rate} & \textbf{NR Factor ($n_c/r_c$)} \\
+    \midrule
+    1 & Urban & 3,000 & 2,700 & 90.0\% & 1.111 \\
+    2 & Rural Hills & 5,000 & 4,600 & 92.0\% & 1.087 \\
+    3 & Rural Mountains & 4,000 & 3,200 & 80.0\% & 1.250 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\textbf{Analysis:} If a Rural Mountain household has a base design weight of 175, its adjusted weight becomes:
+\[
+  w_i^{\text{adjusted}} = 175 \times 1.250 = 218.75
+\]
+This accounts for the higher non-response rate in mountain regions, ensuring they are not under-represented in the final weighted analysis.
+
+\subsection{The Key Assumption: Missing at Random (MAR)}
+Non-response adjustment relies on the \textbf{Missing at Random (MAR)} assumption: \textit{within each cell, respondents and non-respondents share similar values on survey variables of interest.} 
+
+This is more plausible when adjustment cells are highly homogeneous and adjustment factors are kept below $2.0$. If adjustment factors exceed $2.5$, the MAR assumption becomes highly vulnerable.
+
+\subsection{Stata Code: Non-Response Adjustments}
+Below is the Stata code to execute cell-based and propensity-score adjustments:
+
+\begin{lstlisting}[style=stata, caption={Non-Response Adjustments in Stata}]
+* Assume raw dataset contains respondents and non-respondents
+* Variables: hh_id, stratum, responded (1=yes, 0=no), wt_design
+
+* Method 1: Cell-based non-response adjustment
+bysort stratum: egen n_sampled = count(hh_id)
+bysort stratum: egen n_responded = total(responded)
+
+gen nr_factor = n_sampled / n_responded
+gen wt_nr_adjusted = wt_design * nr_factor
+
+* Retain only participating respondents for subsequent analyses
+keep if responded == 1
+
+* Method 2: Response propensity modelling (advanced)
+logit responded i.stratum hh_size i.province [pweight = wt_design]
+predict p_respond, pr
+gen nr_factor_ps = 1 / p_respond
+gen wt_propensity = wt_design * nr_factor_ps
+\end{lstlisting}
+
+\newpage
+
+\subsection{Excel Method: Non-Response Adjustments}
+Structure your spreadsheet as follows:
+
+\textbf{Sheet 1: Cell\_Factors}
+\begin{lstlisting}[style=excel, caption={Excel Formulas for Non-Response Cells}]
+Column A: Stratum
+Column B: n_sampled
+Column C: n_responded
+Column D: NR_Factor  -> Formula: =B2/C2
+\end{lstlisting}
+
+\textbf{Sheet 2: HH\_Data}
+\begin{lstlisting}[style=excel, caption={VLOOKUP implementation in HH\_Data}]
+Column A: HH_ID
+Column B: Stratum
+Column C: wt_design
+Column D: NR_Factor  -> Formula: =VLOOKUP(B2, Cell_Factors!$A:$D, 4, FALSE)
+Column E: wt_adjusted -> Formula: =C2*D2
+\end{lstlisting}
+
+Verify that the sum of adjusted weights across responding units matches the total design weight across all sampled units:
+\begin{lstlisting}[style=excel]
+=SUMIF(responded_col, 1, wt_adjusted_col)
+\end{lstlisting}
+
+\subsection{Edge Cases \& Troubleshooting}
+\begin{itemize}
+  \item \textbf{PSU-Level Non-Response:} If an entire village refuses entry, standard household-level cell adjustment is ineffective. Treat the PSU as a non-responding cluster at the PSU level.
+  \item \textbf{Partial Household Non-Response:} When specific members of a household refuse to respond, address this via item-level imputation rather than household-level weight adjustments.
+  \item \textbf{Extreme Adjustment Factors:} Cells with response rates under 50\% generate extreme weights. Consider collapsing these cells with adjacent, demographically similar cells.
+\end{itemize}
+
+\begin{keytakeaway}
+Non-response adjustment multiplies the design weight by the inverse of the response rate within defined cells. The validity of this adjustment depends on how well the cells satisfy the MAR assumption.
+\end{keytakeaway}
+
+\newpage
+
+% ------------------------------------------------------------------
+\section{Post-Stratification}
+
+\subsection{The Residual Mismatch Problem}
+Even after adjusting for selection design and non-response, the weighted sample may still not align with known target population totals due to:
+\begin{itemize}
+  \item \textbf{Sampling Variability:} Random variation in who was selected.
+  \item \textbf{Sampling Frame Imperfections:} Outdated housing registers.
+  \item \textbf{Residual Non-Response Bias:} Non-response patterns not captured by the adjustment cells.
+\end{itemize}
+
+For example, your weighted survey may show 48\% females when the census indicates 51\%, or 32\% urban residents when the census reports 37\%. Post-stratification resolves this by scaling weights to force weighted sample totals to match known population totals (\textbf{control totals} or \textbf{benchmarks}).
+
+\begin{table}[htbp]
+  \centering
+  \caption{Common Benchmark Sources}
+  \label{tab:benchmarks}
+  \begin{tabularx}{\textwidth}{lX}
+    \toprule
+    \textbf{Source} & \textbf{Typical Applications} \\
+    \midrule
+    National Population Census & Most reliable source for age, sex, and geographic counts \\
+    Official Population Projections & For years between censuses \\
+    Administrative Registers & For specific populations (e.g., school enrollment) \\
+    Larger, High-Quality Surveys & Used when census data is outdated \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{The Post-Stratification Formulation}
+For each post-stratum $g$ (e.g., sex $\times$ area):
+\begin{equation}
+  w_i^{\text{PS}} = w_i^{\text{adjusted}} \times \frac{N_g^{\text{census}}}{\hat{N}_g^{\text{survey}}}
+\end{equation}
+Where:
+\begin{itemize}
+  \item $N_g^{\text{census}}$ is the known population total in group $g$.
+  \item $\hat{N}_g^{\text{survey}}$ is the estimated population total in group $g$ from the adjusted survey:
+  \begin{equation}
+    \hat{N}_g^{\text{survey}} = \sum_{i \in g} w_i^{\text{adjusted}}
+  \end{equation}
+\end{itemize}
+The ratio $\frac{N_g^{\text{census}}}{\hat{N}_g^{\text{survey}}}$ is the \textbf{post-stratification factor}.
+
+\subsection{Worked Post-Stratification Example}
+Consider a design with four post-strata based on Sex and Area:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Post-Stratification Factor Calculation}
+  \label{tab:ps_worked_example}
+  \begin{tabular}{llrrr}
+    \toprule
+    \textbf{Group} & \textbf{Demographics} & \textbf{Census ($N_g^{\text{census}}$)} & \textbf{Survey Total ($\hat{N}_g^{\text{survey}}$)} & \textbf{PS Factor} \\
+    \midrule
+    1 & Male, Urban & 1,850,000 & 1,780,000 & 1.0393 \\
+    2 & Female, Urban & 1,920,000 & 1,970,000 & 0.9746 \\
+    3 & Male, Rural & 4,100,000 & 4,180,000 & 0.9808 \\
+    4 & Female, Rural & 4,300,000 & 4,240,000 & 1.0142 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\newpage
+
+\textbf{Applying the Factors:}
+\begin{itemize}
+  \item A Male, Urban household with $w_i^{\text{adjusted}} = 666.7$ is scaled to:
+  \[
+    w_i^{\text{PS}} = 666.7 \times 1.0393 = 692.9
+  \]
+  \item A Female, Urban household with $w_i^{\text{adjusted}} = 666.7$ is scaled to:
+  \[
+    w_i^{\text{PS}} = 666.7 \times 0.9746 = 649.7
+  \]
+\end{itemize}
+
+\subsection{Required Post-Stratification Verifications}
+After post-stratification, verify that:
+\begin{enumerate}
+  \item Group totals match benchmarks exactly: $\sum_{i \in g} w_i^{\text{PS}} = N_g^{\text{census}}$
+  \item The overall population size is preserved: $\sum_{i=1}^{n} w_i^{\text{PS}} = N^{\text{total}}$
+  \item All weights remain positive: $w_i^{\text{PS}} > 0$
+\end{enumerate}
+
+\subsection{Stata Code: Post-Stratification}
+Post-stratification can be implemented manually or using Stata's built-in options:
+
+\begin{lstlisting}[style=stata, caption={Post-Stratification in Stata}]
+* Assume variable ps_group identifies the 4 post-strata
+* Step 1: Compute weighted survey total per post-stratum
+bysort ps_group: egen survey_total = total(wt_nr)
+
+* Step 2: Assign census control totals
+gen census_pop = .
+replace census_pop = 1850000 if ps_group == 1
+replace census_pop = 1920000 if ps_group == 2
+replace census_pop = 4100000 if ps_group == 3
+replace census_pop = 4300000 if ps_group == 4
+
+* Step 3: Compute post-stratification factor and apply
+gen ps_factor = census_pop / survey_total
+gen wt_poststrat = wt_nr * ps_factor
+
+* Method B: Using Stata's built-in post-stratification engine
+svyset psu [pweight = wt_nr], strata(stratum) ///
+  poststrata(ps_group) postweight(census_pop) vce(linearized)
+\end{lstlisting}
+
+\subsection{Excel Method: Post-Stratification}
+Structure your spreadsheet as follows:
+
+\textbf{Sheet: PS\_Benchmarks}
+\begin{lstlisting}[style=excel, caption={Excel Formulas for Post-Stratification Benchmarks}]
+Column A: ps_group
+Column B: Census_Pop
+Column E: Survey_Weighted_Total  -> Formula: =SUMIF(HH_Data!K:K, A2, HH_Data!J:J)
+Column F: PS_Factor              -> Formula: =B2/E2
+\end{lstlisting}
+
+\textbf{Sheet: HH\_Data}
+\begin{lstlisting}[style=excel, caption={Excel Formulas for Post-Stratified Weights}]
+Column K: ps_group
+Column L: PS_Factor  -> Formula: =VLOOKUP(K2, PS_Benchmarks!$A:$F, 6, FALSE)
+Column M: wt_final   -> Formula: =J2*L2
+\end{lstlisting}
+
+\newpage
+
+\subsection{Benefits and Limitations}
+\begin{itemize}
+  \item \textbf{Bias Reduction:} Corrects sample imbalances on key demographics.
+  \item \textbf{Variance Reduction:} If post-strata are correlated with survey outcomes, post-stratification reduces standard errors.
+  \item \textbf{Dimensional Limits:} If you post-stratify on multiple variables simultaneously (e.g., Sex, Age, and Province), cross-classification cells grow exponentially, resulting in small cell sizes. This limitation is solved by \textbf{raking} (Step 5).
+\end{itemize}
+
+\begin{keytakeaway}
+Post-stratification scales weights within demographic groups so that weighted survey totals match known census benchmarks. This corrects residual discrepancies after design weighting and non-response adjustments.
+\end{keytakeaway}
+
+% ------------------------------------------------------------------
+\section{Weight Adjustment and Calibration (Raking)}
+
+\subsection{The Multi-Dimensional Dimensionality Trap}
+When you want to simultaneously align your sample to multiple characteristics (e.g., Province [7 categories], Sex [2], Age [6], and Area [2]), cross-classifying all variables yields $7 \times 2 \times 6 \times 2 = 168$ cells. Even with a large sample, many cells will have too few respondents to estimate stable post-stratification factors.
+
+Raking (or \textbf{Iterative Proportional Fitting, IPF}) solves this. It adjusts weights to match multiple marginal benchmarks sequentially, rather than the full cross-classified joint distribution.
+
+\subsection{The Core Iterative Process}
+Raking works iteratively:
+\begin{center}
+  \sffamily\small
+  Adjust to Marginal Benchmark 1 $\rightarrow$ Adjust to Marginal Benchmark 2 $\rightarrow$ Re-adjust to Benchmark 1 $\dots$
+\end{center}
+This process repeats until the weights converge and all weighted marginal totals match the target population benchmarks.
+
+\subsection{Worked Raking Example}
+Consider marginal totals for two variables: Sex (Male/Female) and Area (Urban/Rural).
+
+\begin{table}[htbp]
+  \centering
+  \caption{Marginal Census Benchmarks}
+  \label{tab:marginal_benchmarks}
+  \begin{tabular}{lrlr}
+    \toprule
+    \textbf{Sex Group} & \textbf{Census Count} & \textbf{Area Group} & \textbf{Census Count} \\
+    \midrule
+    Male & 5,950,000 & Urban & 3,770,000 \\
+    Female & 6,220,000 & Rural & 8,400,000 \\
+    \midrule
+    \textbf{Total} & \textbf{12,170,000} & \textbf{Total} & \textbf{12,170,000} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\newpage
+
+Assume the starting weighted survey totals (before raking) are:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Pre-Raking Weighted Survey Totals}
+  \label{tab:prerake_totals}
+  \begin{tabular}{lccr}
+    \toprule
+    & \textbf{Urban} & \textbf{Rural} & \textbf{Survey Total} \\
+    \midrule
+    \textbf{Male} & 1,780,000 & 4,180,000 & 5,960,000 \\
+    \textbf{Female} & 1,970,000 & 4,240,000 & 6,210,000 \\
+    \midrule
+    \textbf{Survey Total} & 3,750,000 & 8,420,000 & \textbf{12,170,000} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsubsection{Iteration 1, Pass 1 --- Adjusting for Sex}
+Compute adjustment factors for Sex:
+\begin{itemize}
+  \item $\text{Factor}_{\text{Male}} = 5,950,000 / 5,960,000 \approx 0.99832$
+  \item $\text{Factor}_{\text{Female}} = 6,220,000 / 6,210,000 \approx 1.00161$
+\end{itemize}
+Multiply weights by these factors. While Sex margins now match benchmarks, Area margins will have shifted slightly.
+
+\subsubsection{Iteration 1, Pass 2 --- Adjusting for Area}
+Recalculate Area totals using the adjusted weights, then compute new Area factors:
+\begin{itemize}
+  \item $\text{Factor}_{\text{Urban}} = 3,770,000 / 3,753,000 \approx 1.00453$
+  \item $\text{Factor}_{\text{Rural}} = 8,400,000 / 8,417,000 \approx 0.99798$
+\end{itemize}
+Multiply weights by these Area factors. Repeat this cycle of adjustments. Typically, weights converge within 5--15 iterations.
+
+\subsection{Convergence Criterion}
+Raking has converged when the maximum relative difference between the weighted survey totals and the benchmarks falls below a specified threshold ($\epsilon$):
+\begin{equation}
+  \max_g \left| \frac{\hat{N}_g^{\text{survey}} - N_g^{\text{census}}}{N_g^{\text{census}}} \right| < \epsilon
+\end{equation}
+Typically, $\epsilon = 0.0001$ ($0.01\%$).
+
+\subsection{Stata Code: Calibration Raking}
+Implement raking in Stata using the user-written \texttt{ipfraking} package:
+
+\begin{lstlisting}[style=stata, caption={Raking Calibration in Stata}]
+* Install ipfraking first
+* ssc install ipfraking
+
+* Variables: wt_nr, sex, area, province
+ipfraking [pw = wt_nr], ///
+  ctotal(sex: 5950000 6220000) ///
+  ctotal(area: 3770000 8400000) ///
+  generate(wt_raked) ///
+  maxiter(50) tolerance(0.0001)
+
+* Declare design with the final raked weight
+svyset psu [pweight = wt_raked], strata(stratum) vce(linearized)
+\end{lstlisting}
+
+\newpage
+
+\subsection{Stata Code: Manual Raking Loop}
+Alternatively, you can implement manual raking using a loop in Stata:
+
+\begin{lstlisting}[style=stata, caption={Manual Raking Loop in Stata}]
+gen wt_raked = wt_nr
+local male_pop = 5950000
+local female_pop = 6220000
+local urban_pop = 3770000
+local rural_pop = 8400000
+
+local converged = 0
+local iter = 0
+while `converged' == 0 & `iter' < 50 {
+    local iter = `iter' + 1
+    
+    * Pass 1: Sex
+    bysort sex: egen s_sex = total(wt_raked)
+    gen f_sex = cond(sex==1, `male_pop'/s_sex, `female_pop'/s_sex)
+    replace wt_raked = wt_raked * f_sex
+    drop s_sex f_sex
+    
+    * Pass 2: Area
+    bysort area: egen s_area = total(wt_raked)
+    gen f_area = cond(area==1, `urban_pop'/s_area, `rural_pop'/s_area)
+    replace wt_raked = wt_raked * f_area
+    drop s_area f_area
+    
+    * Check Convergence
+    bysort sex: egen c_sex = total(wt_raked)
+    bysort area: egen c_area = total(wt_raked)
+    gen d_sex = abs(c_sex - cond(sex==1, `male_pop', `female_pop'))/cond(sex==1, `male_pop', `female_pop')
+    gen d_area = abs(c_area - cond(area==1, `urban_pop', `rural_pop'))/cond(area==1, `urban_pop', `rural_pop')
+    
+    summarize d_sex, meanonly
+    local max_d_sex = r(max)
+    summarize d_area, meanonly
+    local max_d_area = r(max)
+    local max_d = max(`max_d_sex', `max_d_area')
+    
+    drop c_sex c_area d_sex d_area
+    if `max_d' < 0.0001 {
+        local converged = 1
+    }
+}
+\end{lstlisting}
+
+\subsection{Excel Method: Manual Raking}
+Structure your spreadsheet as follows:
+\begin{lstlisting}[style=excel, caption={Excel Layout for Manual Raking}]
+Column A: HH_ID
+Column B: Sex
+Column C: Area
+Column D: wt_start
+Column E: wt_pass1 (Sex Adjusted)  -> Formula: =D2 * IF(B2=1, $male_factor, $female_factor)
+Column F: wt_pass2 (Area Adjusted) -> Formula: =E2 * IF(C2=1, $urban_factor, $rural_factor)
+\end{lstlisting}
+Where factors are computed in a summary table on another sheet using \texttt{SUMIF} formulas:
+\begin{lstlisting}[style=excel]
+male_factor  = 5950000 / SUMIF(sex_range, 1, wt_start_range)
+urban_factor = 3770000 / SUMIF(area_range, 1, wt_pass1_range)
+\end{lstlisting}
+To iterate, copy Column F and paste it as values into Column D. Recalculate the factors and repeat this process until the adjustment factors converge to approximately 1.000.
+
+\newpage
+
+\subsection{Post-Stratification vs. Raking}
+The following table summarizes when to use each method:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Methodological Comparison: Post-Stratification vs. Raking}
+  \label{tab:ps_vs_raking}
+  \begin{tabularx}{\textwidth}{lXX}
+    \toprule
+    \textbf{Feature} & \textbf{Post-Stratification} & \textbf{Raking} \\
+    \midrule
+    Number of variables & Single variable (or cross-classification) & Multiple variables simultaneously \\
+    Benchmarks required & Joint distribution of variables & Marginal totals only \\
+    Cell size requirement & Each cell needs sufficient sample ($n$) & Robust to smaller cell sizes \\
+    Mathematical complexity & Simple closed-form calculation & Iterative algorithm \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{keytakeaway}
+Raking iteratively adjusts weights to match multiple marginal benchmarks simultaneously. It is the standard calibration method for large household surveys because it only requires marginal totals, making it practical when many variables need to be aligned at once.
+\end{keytakeaway}
+
+% ------------------------------------------------------------------
+\section{Implementing Weights in Stata and Excel: A Unified Workflow}
+
+\subsection{The Sequential Weight Pipeline}
+For any household survey, the final analysis weight is the product of all sequential adjustments:
+\begin{equation}
+  w_i^{\text{final}} = \underbrace{\frac{1}{\pi_i}}_{\text{design weight}} \times \underbrace{\frac{n_c}{r_c}}_{\text{NR adjustment}} \times \underbrace{\frac{N_g^{\text{census}}}{\hat{N}_g^{\text{survey}}}}_{\text{calibration factor}}
+\end{equation}
+
+Each factor addresses a different source of potential bias. The final weight $w_i^{\text{final}} $ is the variable used for all subsequent analyses.
+
+\subsection{Complete Stata Script}
+This script takes a raw dataset through the full weighting pipeline:
+
+\begin{lstlisting}[style=stata, caption={Complete Stata Weighting Pipeline}]
+* Load raw survey data containing respondents and non-respondents
+use "raw_survey_data.dta", clear
+
+* --- STEP 1: Design Weight
+gen pi_overall = prob_psu * prob_hh_given_psu
+gen wt_design  = 1 / pi_overall
+
+* --- STEP 2: Non-Response Adjustment
+bysort stratum: egen n_sampled   = count(hh_id)
+bysort stratum: egen n_responded = total(responded)
+gen nr_factor = n_sampled / n_responded
+gen wt_nr     = wt_design * nr_factor
+
+* Retain only participating respondents
+keep if responded == 1
+
+* --- STEP 3: Post-Stratification
+gen ps_group = (sex - 1)*2 + area  // 1=M/Urb, 2=M/Rur, 3=F/Urb, 4=F/Rur
+bysort ps_group: egen survey_total = total(wt_nr)
+
+* Assign Census benchmarks
+gen census_pop = .
+replace census_pop = 1850000 if ps_group == 1
+replace census_pop = 4100000 if ps_group == 2
+replace census_pop = 1920000 if ps_group == 3
+replace census_pop = 4300000 if ps_group == 4
+
+gen ps_factor = census_pop / survey_total
+gen wt_final  = wt_nr * ps_factor
+
+* --- STEP 4: Declare Survey Design
+svyset psu [pweight = wt_final], strata(stratum) vce(linearized)
+
+* --- STEP 5: Analysis
+svy: mean income
+svy: total poor
+\end{lstlisting}
+
+\subsection{Key Stata Rules}
+\begin{enumerate}
+  \item \textbf{Always use \texttt{svyset} before any \texttt{svy:} command.} If you do not declare the survey design, Stata will calculate incorrect standard errors by treating the data as a simple random sample.
+  \item \textbf{Use \texttt{pweight} (probability weights).} Other weight types are generally incorrect for survey analysis:
+\end{enumerate}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Stata Weight Types}
+  \label{tab:stata_weight_types}
+  \begin{tabularx}{\textwidth}{lXl}
+    \toprule
+    \textbf{Weight Type} & \textbf{Function} & \textbf{Suitable for Survey Data?} \\
+    \midrule
+    \texttt{pweight} & Probability weight (corrects SEs via Taylor linearization) & Yes \\
+    \texttt{fweight} & Frequency weight (treats each observation as multiple units) & No \\
+    \texttt{aweight} & Analytic weight (used for cell-average analysis) & No \\
+    \texttt{iweight} & Importance weight (user-defined; no SE corrections) & No \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{keytakeaway}
+Always use the \texttt{svy:} prefix for estimates (e.g., \texttt{svy: mean}), rather than using bare commands with weight parameters (e.g., \texttt{mean [pweight=wt]}). Bare commands do not account for clustering or stratification, resulting in incorrect standard errors.
+\end{keytakeaway}
+
+\newpage
+
+\subsection{Complete Excel Workbook Structure}
+Structure your Excel workbook as follows to implement the weighting pipeline:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Excel Workbook Sheet Structure}
+  \label{tab:excel_workbook_structure}
+  \begin{tabularx}{\textwidth}{lX}
+    \toprule
+    \textbf{Sheet Name} & \textbf{Contents} \\
+    \midrule
+    \texttt{HH\_Data} & One row per household; contains raw variables and weight columns \\
+    \texttt{Strata\_NR} & Stratum-level non-response adjustment factors \\
+    \texttt{PS\_Factors} & Post-strata benchmarks and factors \\
+    \texttt{Verification} & Quality control checks for each weight step \\
+    \texttt{Analysis} & Weighted estimates (means, totals, proportions) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsubsection{HH\_Data Column Layout and Formulas}
+\begin{lstlisting}[style=excel, caption={Excel Formulas in HH\_Data Sheet}]
+Column F: pi_overall   -> Formula: =prob_psu * prob_hh
+Column G: wt_design    -> Formula: =1/pi_overall
+Column I: nr_factor    -> Formula: =VLOOKUP(stratum, Strata_NR!$A:$C, 3, FALSE)
+Column J: wt_nr        -> Formula: =wt_design * nr_factor
+Column L: ps_factor    -> Formula: =VLOOKUP(ps_group, PS_Factors!$A:$D, 4, FALSE)
+Column M: wt_final     -> Formula: =wt_nr * ps_factor
+\end{lstlisting}
+
+\subsubsection{Weighted Estimation Formulas}
+\begin{lstlisting}[style=excel, caption={Weighted Estimation in Excel}]
+* Weighted Mean Income:
+=SUMPRODUCT(wt_final_range, income_range) / SUM(wt_final_range)
+
+* Weighted Poverty Rate:
+=SUMPRODUCT(wt_final_range, poor_range) / SUM(wt_final_range)
+
+* Weighted Mean Income for Urban Only:
+=SUMPRODUCT((area_range=1)*wt_final_range, income_range) / SUMPRODUCT((area_range=1)*wt_final_range)
+\end{lstlisting}
+
+\begin{diagnosticbox}[Excel Standard Errors]
+Excel cannot calculate design-based standard errors that account for clustering or stratification. Use Excel for point estimates and training; use Stata or R's \texttt{survey} package for analytical results.
+\end{diagnosticbox}
+
+\newpage
+
+% ------------------------------------------------------------------
+\section{Diagnostics, Edge Cases, and Common Mistakes}
+
+\subsection{Five Core Diagnostic Questions}
+Before publishing any weighted estimates, check the following five diagnostics:
+\begin{enumerate}
+  \item Do the final weights sum to the expected population total?
+  \item Are there extreme weights that could destabilize estimates?
+  \item Does the overall distribution of weights look reasonable?
+  \item Do the weighted demographics match the target population benchmarks?
+  \item Does the effective sample size suggest adequate precision?
+  \item Is the design effect (DEFF) within acceptable limits?
+\end{enumerate}
+
+\subsection{Diagnostic 1: Sum of Weights Check}
+The sum of the final weights across all respondents should equal the known population total:
+\begin{lstlisting}[style=stata]
+* In Stata
+summarize wt_final
+display "Sum of weights: " r(sum)
+\end{lstlisting}
+In Excel:
+\begin{lstlisting}[style=excel]
+=SUM(wt_final_range)
+\end{lstlisting}
+After post-stratification or raking, this sum should match the census benchmark exactly.
+
+\subsection{Diagnostic 2: Extreme Weights and the Weight Ratio}
+Extreme weights (a small number of observations with very large weights) can dominate estimates and inflate variance. 
+
+The \textbf{weight ratio} (or weight efficiency ratio) is calculated as:
+\begin{equation}
+  \text{Weight Ratio} = \frac{w_{\max}}{\bar{w}}
+\end{equation}
+Where $\bar{w}$ is the mean weight. Use the following guidelines to evaluate this ratio:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Weight Ratio Evaluation Guidelines}
+  \label{tab:weight_ratio_guidelines}
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Weight Ratio} & \textbf{Evaluation} \\
+    \midrule
+    $<$ 3 & Good; weights are well-behaved \\
+    3 -- 5 & Acceptable; monitor estimates carefully \\
+    5 -- 10 & Concerning; investigate the causes of the extreme weights \\
+    $>$ 10 & Problematic; consider weight trimming \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The \textbf{coefficient of variation} ($\text{CV}_w$) of the weights is calculated as:
+\begin{equation}
+  \text{CV}_w = \frac{\text{SD}(w_i)}{\bar{w}}
+\end{equation}
+A higher CV indicates greater variance inflation.
+
+\newpage
+
+\subsection{Diagnostic 3: Weight Trimming}
+Weight trimming caps extreme weights at a maximum value and redistributes the excess weight to other units. This introduces a small amount of bias but can substantially reduce variance (the bias-variance tradeoff).
+
+\textbf{Method A: Percentile Trimming:} Cap weights at the 95th or 99th percentile.
+\begin{lstlisting}[style=stata, caption={Percentile Trimming in Stata}]
+* Trim at the 99th percentile
+_pctile wt_final, p(99)
+local trim_threshold = r(r1)
+gen wt_trimmed = min(wt_final, `trim_threshold')
+
+* Renormalize so the sum of trimmed weights equals the population total
+summarize wt_final, meanonly
+local pop_total = r(sum)
+summarize wt_trimmed, meanonly
+replace wt_trimmed = wt_trimmed * (`pop_total' / r(sum))
+\end{lstlisting}
+
+\textbf{Method B: Fixed Multiple Trimming:} Cap weights at $k \times \bar{w}$ (typically $k = 5$ or $k = 6$).
+\begin{lstlisting}[style=stata, caption={Fixed Multiple Trimming in Stata}]
+summarize wt_final, meanonly
+local mean_w = r(mean)
+local k = 5
+gen wt_trimmed = min(wt_final, `k' * `mean_w')
+\end{lstlisting}
+
+\subsection{Diagnostic 4: Effective Sample Size (ESS) and Design Effect}
+The \textbf{effective sample size} ($n_{\text{eff}}$) is the sample size of an equal-probability design that would yield the same precision as the weighted sample:
+\begin{equation}
+  n_{\text{eff}} = \frac{\left(\sum w_i\right)^2}{\sum w_i^2}
+\end{equation}
+
+The \textbf{design effect} (Kish's approximate DEFF due to weighting) is calculated as:
+\begin{equation}
+  \text{DEFF}_{\text{weight}} = \frac{n}{n_{\text{eff}}} \approx 1 + \text{CV}_w^2
+\end{equation}
+A DEFF of 2.0 indicates that weighting has doubled the variance (equivalent to halving the sample size) compared to an SRS design.
+
+\begin{lstlisting}[style=stata, caption={Calculating ESS in Stata}]
+gen wt_sq = wt_final^2
+summarize wt_final, meanonly
+local sum_w = r(sum)
+summarize wt_sq, meanonly
+local sum_w_sq = r(sum)
+
+local n_eff = (`sum_w'^2) / `sum_w_sq'
+display "Effective Sample Size: " `n_eff'
+display "Design Effect (DEFF):  " _N / `n_eff'
+\end{lstlisting}
+
+\newpage
+
+\subsection{Diagnostic 5: Benchmark Verification Table}
+Before finalizing your analysis, construct a benchmark verification table to confirm that the weighted demographics match your target population benchmarks:
+
+\begin{table}[htbp]
+  \centering
+  \caption{Benchmark Verification Table (Example)}
+  \label{tab:benchmark_verification}
+  \begin{tabular}{llrrr}
+    \toprule
+    \textbf{Variable} & \textbf{Category} & \textbf{Census \%} & \textbf{Weighted Survey \%} & \textbf{Difference} \\
+    \midrule
+    Sex & Male & 48.9\% & 48.9\% & 0.0\% \\
+    Sex & Female & 51.1\% & 51.1\% & 0.0\% \\
+    Area & Urban & 31.0\% & 31.0\% & 0.0\% \\
+    Area & Rural & 69.0\% & 69.0\% & 0.0\% \\
+    Age Group & 15--24 & 21.3\% & 21.2\% & -0.1\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{The Eight Most Common Mistakes in Weighting}
+\begin{description}
+  \item[Mistake 1: Using analytic or frequency weights instead of probability weights.] In Stata, always use \texttt{pweight} for survey data. Using other weight types will result in incorrect standard errors.
+  \item[Mistake 2: Forgetting to update \texttt{svyset}.] Update your \texttt{svyset} declaration whenever you create or modify a weight variable. If you do not, Stata will continue to use the old weight.
+  \item[Mistake 3: Retaining non-respondents in the analysis dataset.] After calculating non-response adjustments, exclude non-respondents (e.g., \texttt{keep if responded == 1}) so they do not affect estimates.
+  \item[Mistake 4: Controlling for post-stratified variables in regressions without adjusting for collinearity.] The weights have already aligned the sample to the population benchmarks for those variables, which affects how you interpret those regression coefficients.
+  \item[Mistake 5: Treating weights as frequency weights in Excel.] Do not duplicate rows based on their weights. Apply weights only using \texttt{SUMPRODUCT} and \texttt{SUM} formulas.
+  \item[Mistake 6: Failing to inspect the weight distribution.] A single data entry error in a selection probability can result in an extremely large weight that dominates all estimates. Always inspect the maximum weights.
+  \item[Mistake 7: Applying post-stratification but not updating \texttt{svyset} with the new weight variable.] This results in using the pre-adjusted weights for your estimates.
+  \item[Mistake 8: Confusing normalized and unnormalized weights.] Use unnormalized weights (which sum to the population size $N$) to estimate totals; normalized weights are only suitable for estimating means or proportions.
+\end{description}
+
+\newpage
+
+\subsection{Pre-Publication Checklist}
+Before publishing any survey estimates, complete the following checklist:
+
+\begin{itemize}[label=$\square$]
+  \item The sum of the final weights matches the known target population size ($N$).
+  \item The weight ratio ($w_{\max} / \bar{w}$) is less than 5.0, or weight trimming has been applied and documented.
+  \item The coefficient of variation (CV) of the weights has been calculated and reported.
+  \item The effective sample size (ESS) has been calculated and reported in the methodology section.
+  \item A benchmark verification table has been constructed, and all calibrated margins match the population targets.
+  \item The survey design has been correctly declared in Stata using \texttt{svyset} with the final weight variable, strata, and PSU variables.
+  \item All estimates are produced using the \texttt{svy:} prefix.
+  \item Non-responding units have been excluded from the analysis dataset.
+  \item Any weight trimming (including the threshold and the number of affected observations) has been documented.
+  \item The weight type (normalized vs. unnormalized) is clearly noted in the survey documentation.
+\end{itemize}
+
+\begin{keytakeaway}
+Survey weights are only as reliable as the diagnostics you run on them. Use the weight ratio and effective sample size to check for extreme weights and ensure your estimates are stable. Document any trimming and verify your final margins against known benchmarks before publishing.
+\end{keytakeaway}
+
+\end{document}
