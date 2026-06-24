@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simple Sampling Examples with 5,000 Simulated Records</title>
+  <style>
+    :root {
+      --page: #f6f7f9;
+      --text: #20242a;
+      --muted: #586170;
+      --code: #f0f3f7;
+      --border: #d8dee8;
+      --accent: #1f6f8b;
+      --result: #eef7f1;
+    }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 18px 56px;
+    }
+    h1, h2 {
+      line-height: 1.2;
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: 30px;
+    }
+    h2 {
+      margin-top: 30px;
+      font-size: 21px;
+      border-top: 1px solid var(--border);
+      padding-top: 22px;
+    }
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+    .cell {
+      margin: 14px 0 18px;
+    }
+    .label {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    pre {
+      margin: 0;
+      padding: 14px 16px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--code);
+      color: #1b2633;
+      font: 13px/1.45 Consolas, "Courier New", monospace;
+    }
+    .result pre {
+      background: var(--result);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: white;
+      border: 1px solid var(--border);
+    }
+    th, td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    th {
+      background: #edf1f6;
+    }
+    code {
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 4px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Simple Sampling Examples with 5,000 Simulated Records</h1>
+  <p>This notebook mirrors <code>simple_sampling_5000.do</code>. It creates a simulated population and shows five common sampling designs in compact Stata code.</p>
+
+  <h2>Setup</h2>
+  <p>Start with a clean Stata session, set a seed for reproducibility, and create an output folder.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>version 16.0
+clear all
+set more off
+set seed 24062026
+
+capture mkdir "output"</code></pre>
+  </div>
+
+  <h2>Create the Simulated Population</h2>
+  <p>The population has 5,000 records, five regions, 200 clusters, and three simulated analysis variables.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>set obs 5000
+gen long id = _n
+
+gen byte region = .
+replace region = 1 if inrange(id,    1,  500)
+replace region = 2 if inrange(id,  501, 1500)
+replace region = 3 if inrange(id, 1501, 2750)
+replace region = 4 if inrange(id, 2751, 4250)
+replace region = 5 if inrange(id, 4251, 5000)
+
+label define region_lbl 1 "Mountain" 2 "Hill rural" 3 "Hill urban" ///
+                        4 "Terai rural" 5 "Terai urban"
+label values region region_lbl
+
+gen int cluster = ceil(id / 25)
+gen byte female = runiform() &lt; 0.52
+gen byte urban  = inlist(region, 3, 5)
+gen double income = 25000 + 3500*region + 8000*urban + 2500*female + rnormal(0, 9000)
+replace income = max(income, 5000)
+
+save "output/simulated_population_5000.dta", replace</code></pre>
+  </div>
+  <div class="cell result">
+    <div class="label">Result</div>
+    <pre><code>The file output/simulated_population_5000.dta contains the full simulated population frame.</code></pre>
+  </div>
+
+  <h2>Prepare a Summary Table</h2>
+  <p>The do-file posts the sample size and mean income from each design into one summary dataset.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>tempfile sample_summary selected_clusters
+postfile results str35 design int n double mean_income using `sample_summary', replace</code></pre>
+  </div>
+
+  <h2>Simple Random Sample</h2>
+  <p>Every record has the same chance of selection. Here Stata selects exactly 500 records.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>preserve
+    sample 500, count
+    summarize income
+    post results ("Simple random sample") (r(N)) (r(mean))
+    save "output/sample_srs_500.dta", replace
+restore</code></pre>
+  </div>
+
+  <h2>Systematic Sample</h2>
+  <p>After a random start, every 10th record is selected because 5,000 / 500 = 10.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>preserve
+    sort id
+    scalar interval = _N / 500
+    scalar start = ceil(runiform() * interval)
+    keep if mod(_n - start, interval) == 0
+    summarize income
+    post results ("Systematic sample") (r(N)) (r(mean))
+    save "output/sample_systematic_500.dta", replace
+restore</code></pre>
+  </div>
+
+  <h2>Stratified Proportional Sample</h2>
+  <p>The sample keeps the same regional composition as the population by taking 10 percent from each region.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>preserve
+    gen double u = runiform()
+    sort region u
+    by region: gen long rank_in_region = _n
+    by region: gen long n_region = _N
+    keep if rank_in_region &lt;= round(0.10 * n_region)
+    summarize income
+    post results ("Stratified proportional sample") (r(N)) (r(mean))
+    save "output/sample_stratified_500.dta", replace
+restore</code></pre>
+  </div>
+
+  <h2>One-Stage Cluster Sample</h2>
+  <p>Twenty clusters are selected, then all 25 records inside each selected cluster are kept.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>preserve
+    keep cluster
+    duplicates drop
+    gen double u = runiform()
+    sort u
+    keep in 1/20
+    gen byte selected_cluster = 1
+    save `selected_clusters', replace
+restore
+
+preserve
+    merge m:1 cluster using `selected_clusters', nogen
+    keep if selected_cluster == 1
+    summarize income
+    post results ("One-stage cluster sample") (r(N)) (r(mean))
+    save "output/sample_cluster_500.dta", replace
+restore</code></pre>
+  </div>
+
+  <h2>Unequal Probability Sample</h2>
+  <p>Urban records receive a higher selection probability. The design weight is the inverse of the selection probability.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>preserve
+    gen double p_select = cond(urban == 1, 0.15, 0.08)
+    keep if runiform() &lt; p_select
+    gen double design_weight = 1 / p_select
+    summarize income
+    post results ("Unequal probability sample") (r(N)) (r(mean))
+    save "output/sample_unequal_probability.dta", replace
+restore</code></pre>
+  </div>
+
+  <h2>Save the Results</h2>
+  <p>The final table compares the sample size and mean income from each sampling method.</p>
+  <div class="cell">
+    <div class="label">Stata code</div>
+    <pre><code>postclose results
+
+use `sample_summary', clear
+format mean_income %12.2f
+list, noobs abbreviate(24)
+save "output/simple_sampling_summary.dta", replace
+export delimited using "output/simple_sampling_summary.csv", replace</code></pre>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Design</th>
+        <th>Sample size</th>
+        <th>Expected note</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Simple random sample</td>
+        <td>500</td>
+        <td>Equal probability sample of individuals.</td>
+      </tr>
+      <tr>
+        <td>Systematic sample</td>
+        <td>500</td>
+        <td>Every 10th record after a random start.</td>
+      </tr>
+      <tr>
+        <td>Stratified proportional sample</td>
+        <td>500</td>
+        <td>10 percent from each region.</td>
+      </tr>
+      <tr>
+        <td>One-stage cluster sample</td>
+        <td>500</td>
+        <td>20 clusters times 25 records.</td>
+      </tr>
+      <tr>
+        <td>Unequal probability sample</td>
+        <td>Random</td>
+        <td>Sample size varies because records are selected independently.</td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+</body>
+</html>
